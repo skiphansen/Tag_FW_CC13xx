@@ -1,0 +1,10 @@
+Debug/
+*.vtg
+*.vpw
+*.vpwhist
+e
+*.log
+*.bak
+.settings/
+.theia/
+

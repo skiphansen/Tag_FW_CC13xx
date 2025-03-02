@@ -60,18 +60,20 @@ char print_buf[(BUF_SIZE * 2) + 1];
 void *mainThread(void *arg0)
 {
 
-    // // Sets up display
-    // Display_Handle displayHandle;
-    // Display_init();
-    // displayHandle = Display_open(Display_Type_UART, NULL);
-    // if (displayHandle == NULL)
-    // {
-    //     // Display_open() failed
-    //     return (NULL);
-    // } else {
-    //     Display_printf(displayHandle, 0, 0, "Hi from ChromaAeon74! :D");
-    // }
-
+#if 1
+    // Sets up display
+    Display_Handle displayHandle;
+    Display_init();
+    displayHandle = Display_open(Display_Type_UART, NULL);
+    if (displayHandle == NULL)
+    {
+        // Display_open() failed
+        return (NULL);
+    } else {
+        Display_printf(displayHandle, 0, 0, "Hi from ChromaAeon74! :D");
+    }
+#endif
+#if 0
     // Sets up the NVS
     NVS_Handle nvsHandle;
     NVS_Params nvsParams;
@@ -110,7 +112,7 @@ void *mainThread(void *arg0)
     Epd_Sleep();
 
     // Display_printf(displayHandle, 0, 0, "Done!");
-
+#endif
 
     return (NULL);
 }
