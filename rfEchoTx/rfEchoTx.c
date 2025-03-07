@@ -38,6 +38,9 @@
 #include <ti/drivers/rf/RF.h>
 #include <ti/drivers/GPIO.h>
 
+#include "oepl-definitions.h"
+#include "oepl-proto.h"
+
 /* Driverlib Header files */
 #include DeviceFamily_constructPath(driverlib/rf_prop_mailbox.h)
 
@@ -119,6 +122,8 @@ static volatile RF_EventMask eventLog[32];
 static volatile uint8_t evIndex = 0;
 #endif // LOG_RADIO_EVENTS
 
+static uint8_t CreatePingPacket(void);
+
 /***** Function definitions *****/
 
 void *mainThread(void *arg0)
@@ -139,7 +144,6 @@ void *mainThread(void *arg0)
     }
 
     /* Modify CMD_PROP_TX and CMD_PROP_RX commands for application needs */
-    RF_cmdPropTx.pktLen = PAYLOAD_LENGTH;
     RF_cmdPropTx.pPkt = txPacket;
     RF_cmdPropTx.startTrigger.triggerType = TRIG_ABSTIME;
     RF_cmdPropTx.startTrigger.pastTrig = 1;
@@ -179,14 +183,8 @@ void *mainThread(void *arg0)
     while(1)
     {
         /* Create packet with incrementing sequence number and random payload */
-        txPacket[0] = (uint8_t)(seqNumber >> 8);
-        txPacket[1] = (uint8_t)(seqNumber++);
-        uint8_t i;
-        for (i = 2; i < PAYLOAD_LENGTH; i++)
-        {
-            txPacket[i] = rand();
-        }
 
+       RF_cmdPropTx.pktLen = CreatePingPacket();
         /* Set absolute TX time to utilize automatic power management */
         curtime += PACKET_INTERVAL;
         RF_cmdPropTx.startTime = curtime;
@@ -333,3 +331,38 @@ static void echoCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e)
 
     }
 }
+
+uint8_t mSelfMac[8];
+uint8_t gSeq;
+
+
+// radio stuff
+static uint8_t CreatePingPacket()
+{
+    struct MacFrameBcast *txframe = (struct MacFrameBcast *)txPacket;
+    memset(txframe, 0, sizeof(struct MacFrameBcast));
+
+    mSelfMac[7] = 0x44;
+    mSelfMac[6] = 0x67;
+
+    mSelfMac[5] = 'S' - 'A';
+    mSelfMac[4] = 'R' - 'A';
+
+    mSelfMac[3] = 0x12;
+    mSelfMac[2] = 0x34;
+    mSelfMac[1] = 0x56;
+    mSelfMac[0] = 0x78;
+
+    memcpy(txframe->src, mSelfMac, 8);
+    txframe->fcs.frameType = 1;
+    txframe->fcs.ackReqd = 1;
+    txframe->fcs.destAddrType = 2;
+    txframe->fcs.srcAddrType = 3;
+    txframe->seq = gSeq++;
+    txframe->dstPan = PROTO_PAN_ID;
+    txframe->dstAddr = 0xFFFF;
+    txframe->srcPan = PROTO_PAN_ID;
+
+    return (uint8_t) sizeof(txframe);
+}
+
