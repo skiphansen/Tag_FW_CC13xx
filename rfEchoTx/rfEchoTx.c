@@ -50,11 +50,11 @@
 
 /***** Defines *****/
 /* Packet TX/RX Configuration */
-#define PAYLOAD_LENGTH      30
+#define PAYLOAD_LENGTH      255
 /* Set packet interval to 1000ms */
 #define PACKET_INTERVAL     (uint32_t)(4000000*1.0f)
-/* Set Receive timeout to 500ms */
-#define RX_TIMEOUT          (uint32_t)(4000000*0.5f)
+/* Set Receive timeout to 2000ms */
+#define RX_TIMEOUT          (uint32_t)(4000000*2)
 /* NOTE: Only two data entries supported at the moment */
 #define NUM_DATA_ENTRIES    2
 /* The Data Entries data field will contain:
