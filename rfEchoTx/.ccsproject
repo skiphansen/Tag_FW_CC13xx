@@ -10,7 +10,7 @@
 	<ignoreDefaultDeviceSettings value="true"/>
 	<ignoreDefaultCCSSettings value="true"/>
 	<templateProperties value="id=rfEchoTx_LP_CC1311P3_nortos_ticlang.projectspec.rfEchoTx_LP_CC1311P3_nortos_ticlang,buildProfile=release,isHybrid=true"/>
-	<activeTargetConfiguration value="targetConfigs/CC1311P3.ccxml"/>
+	<activeTargetConfiguration value="targetConfigs/CC1311R3.ccxml"/>
 	<isTargetConfigurationManual value="false"/>
 	<origin value="/home/skip/ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/examples/nortos/LP_CC1311P3/prop_rf/rfEchoTx/ticlang/rfEchoTx_LP_CC1311P3_nortos_ticlang.projectspec"/>
 	<filesToOpen value=""/>

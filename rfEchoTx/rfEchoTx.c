@@ -127,11 +127,6 @@ void *mainThread(void *arg0)
     RF_Params rfParams;
     RF_Params_init(&rfParams);
 
-    GPIO_setConfig(CONFIG_GPIO_RLED, GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW);
-    GPIO_setConfig(CONFIG_GPIO_GLED, GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW);
-
-    GPIO_write(CONFIG_GPIO_RLED, CONFIG_GPIO_LED_OFF);
-    GPIO_write(CONFIG_GPIO_GLED, CONFIG_GPIO_LED_OFF);
 
     if(RFQueue_defineQueue(&dataQueue,
                            rxDataEntryBuffer,
@@ -140,8 +135,6 @@ void *mainThread(void *arg0)
                            PAYLOAD_LENGTH + NUM_APPENDED_BYTES))
     {
         /* Failed to allocate space for all data entries */
-        GPIO_write(CONFIG_GPIO_GLED, CONFIG_GPIO_LED_ON);
-        GPIO_write(CONFIG_GPIO_RLED, CONFIG_GPIO_LED_ON);
         while(1);
     }
 
@@ -284,9 +277,6 @@ static void echoCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e)
     if((e & RF_EventCmdDone) && !(e & RF_EventLastCmdDone))
     {
         /* Successful TX */
-        /* Toggle LED1, clear LED2 to indicate TX */
-        GPIO_toggle(CONFIG_GPIO_GLED);
-        GPIO_write(CONFIG_GPIO_RLED, CONFIG_GPIO_LED_OFF);
     }
     else if(e & RF_EventRxEntryDone)
     {
@@ -312,14 +302,12 @@ static void echoCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e)
         if(status == 0)
         {
             /* Toggle LED1, clear LED2 to indicate RX */
-            GPIO_toggle(CONFIG_GPIO_GLED);
-            GPIO_write(CONFIG_GPIO_RLED, CONFIG_GPIO_LED_OFF);
+
         }
         else
         {
             /* Error Condition: set both LEDs */
-            GPIO_write(CONFIG_GPIO_GLED, CONFIG_GPIO_LED_ON);
-            GPIO_write(CONFIG_GPIO_RLED, CONFIG_GPIO_LED_ON);
+
         }
 
         RFQueue_nextEntry();
@@ -336,15 +324,12 @@ static void echoCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e)
         else
         {
             /* RX timed out */
-            /* Set LED2, clear LED1 to indicate TX */
-            GPIO_write(CONFIG_GPIO_GLED, CONFIG_GPIO_LED_OFF);
-            GPIO_write(CONFIG_GPIO_RLED, CONFIG_GPIO_LED_ON);
+
         }
     }
     else
     {
         /* Error Condition: set both LEDs */
-        GPIO_write(CONFIG_GPIO_GLED, CONFIG_GPIO_LED_ON);
-        GPIO_write(CONFIG_GPIO_RLED, CONFIG_GPIO_LED_ON);
+
     }
 }

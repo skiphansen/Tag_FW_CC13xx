@@ -61,6 +61,12 @@ extern uint8_t RFQueue_nextEntry();
 extern rfc_dataEntryGeneral_t* RFQueue_getDataEntry();
 extern uint8_t RFQueue_defineQueue(dataQueue_t *queue ,uint8_t *buf, uint16_t buf_len, uint8_t numEntries, uint16_t length);
 
+// board change kludges
+#define RF_cmdPropTx RF_cmdPropTx_custom868_0
+#define RF_cmdPropRx RF_cmdPropRx_custom868_0
+#define RF_cmdPropRadioDivSetup RF_cmdPropRadioDivSetup_custom868_0
+#define RF_prop RF_prop_custom868_0
+#define RF_cmdFs RF_cmdFs_custom868_0
 #endif
 
 //*****************************************************************************
