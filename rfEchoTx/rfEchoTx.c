@@ -35,6 +35,7 @@
 #include <stdlib.h>
 
 /* TI Drivers */
+#include <ti/display/Display.h>
 #include <ti/drivers/rf/RF.h>
 #include <ti/drivers/GPIO.h>
 
@@ -123,6 +124,7 @@ static volatile uint8_t evIndex = 0;
 #endif // LOG_RADIO_EVENTS
 
 static uint8_t CreatePingPacket(void);
+void CheckPing(uint8_t *pRx,uint8_t PacketLength);
 
 /***** Function definitions *****/
 
@@ -131,6 +133,20 @@ void *mainThread(void *arg0)
     uint32_t curtime;
     RF_Params rfParams;
     RF_Params_init(&rfParams);
+
+#if 1
+    // Sets up display
+    Display_Handle displayHandle;
+    Display_init();
+    displayHandle = Display_open(Display_Type_UART, NULL);
+    if (displayHandle == NULL)
+    {
+        // Display_open() failed
+        return (NULL);
+    } else {
+        Display_printf(displayHandle, 0, 0, "Hi from ChromaAeon74! :D");
+    }
+#endif
 
 
     if(RFQueue_defineQueue(&dataQueue,
@@ -293,20 +309,7 @@ static void echoCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e)
 
         /* Copy the payload + status byte to the rxPacket variable */
         memcpy(rxPacket, packetDataPointer, (packetLength + 1));
-
-        /* Check the packet against what was transmitted */
-        int16_t status = memcmp(txPacket, rxPacket, packetLength);
-
-        if(status == 0)
-        {
-            /* Toggle LED1, clear LED2 to indicate RX */
-
-        }
-        else
-        {
-            /* Error Condition: set both LEDs */
-
-        }
+        CheckPing(rxPacket,packetLength);
 
         RFQueue_nextEntry();
     }
@@ -366,3 +369,25 @@ static uint8_t CreatePingPacket()
     return (uint8_t) sizeof(txframe);
 }
 
+static bool pktIsUnicast(const void *buffer)
+{
+    const struct MacFcs *fcs = buffer;
+    if ((fcs->frameType == 1) && (fcs->destAddrType == 2) && (fcs->srcAddrType == 3) && (fcs->panIdCompressed == 0))
+    {
+        return false;
+    }
+    else if ((fcs->frameType == 1) && (fcs->destAddrType == 3) && (fcs->srcAddrType == 3) && (fcs->panIdCompressed == 1))
+    {
+        // normal frame
+        return true;
+    }
+    // unknown type...
+    return false;
+}
+
+void CheckPing(uint8_t *pRx,uint8_t PacketLength)
+{
+   struct MacFrameBcast *Rxframe = (struct MacFrameBcast *)pRx;
+
+
+}

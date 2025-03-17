@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "rfEchoTx_LP_CC1311P3_nortos_ticlang",
+            "type": "ccs-debug",
+            "request": "launch",
+            "projectInfo": {
+                "name": "rfEchoTx_LP_CC1311P3_nortos_ticlang",
+                "resourceId": "/rfEchoTx_LP_CC1311P3_nortos_ticlang"
+            }
+        },
+        {
+            "name": "ChromaAeon74",
+            "type": "ccs-debug",
+            "request": "launch",
+            "projectInfo": {
+                "name": "ChromaAeon74",
+                "resourceId": "/ChromaAeon74"
+            }
+        }
+    ]
+}

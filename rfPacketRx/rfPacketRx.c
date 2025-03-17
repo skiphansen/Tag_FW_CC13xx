@@ -108,9 +108,6 @@ void *mainThread(void *arg0)
     RF_Params rfParams;
     RF_Params_init(&rfParams);
 
-    GPIO_setConfig(CONFIG_GPIO_RLED, GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW);
-    GPIO_write(CONFIG_GPIO_RLED, CONFIG_GPIO_LED_OFF);
-
     if( RFQueue_defineQueue(&dataQueue,
                             rxDataEntryBuffer,
                             sizeof(rxDataEntryBuffer),
