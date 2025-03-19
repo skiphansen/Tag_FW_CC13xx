@@ -54,6 +54,8 @@
 static char buf[BUF_SIZE];
 char print_buf[(BUF_SIZE * 2) + 1];
 
+#define LOG(format, ... ) Display_printf(displayHandle, 0, 0,format,## __VA_ARGS__)
+
 /*
  *  ======== mainThread ========
  */
@@ -73,12 +75,16 @@ void *mainThread(void *arg0)
         Display_printf(displayHandle, 0, 0, "Hi from ChromaAeon74! :D");
     }
 #endif
-#if 0
+#if 1
     // Sets up the NVS
     NVS_Handle nvsHandle;
     NVS_Params nvsParams;
+    NVS_Attrs NvrAttribs;
+
     NVS_init();
     NVS_Params_init(&nvsParams);
+
+
     nvsHandle = NVS_open(CONFIG_NVS_FLASH, &nvsParams);
     if (nvsHandle == NULL)
     {
@@ -86,10 +92,18 @@ void *mainThread(void *arg0)
         return (NULL);
     }
 
+#if 0
+    NVS_getAttrs(nvsHandle,&NvrAttribs);
+
+    LOG("regionSize 0x%x sectorSize 0x%x.",
+        NvrAttribs.regionSize,NvrAttribs.sectorSize);
+#endif
+
+#if 1
     // Try reading a NVS and printing output
-    for (int page=0; page < 1; page ++) {
+    for (int page=0; page < 0x100; page ++) {
         // Choose memory offset to read
-        uint16_t byte_offset = page * sizeof(buf);
+        uint32_t byte_offset = page * sizeof(buf);
 
         // Read NVS
         NVS_read(nvsHandle, byte_offset, (void *)buf, sizeof(buf));
@@ -102,6 +116,7 @@ void *mainThread(void *arg0)
         Display_printf(displayHandle, 0, 0, "%s", print_buf);
     }
     NVS_close(nvsHandle);
+#endif
 
 
     //EPD
