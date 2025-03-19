@@ -123,6 +123,8 @@ static volatile RF_EventMask eventLog[32];
 static volatile uint8_t evIndex = 0;
 #endif // LOG_RADIO_EVENTS
 
+Display_Handle gDisplayHandle;
+
 static uint8_t CreatePingPacket(void);
 void CheckPing(uint8_t *pRx,uint8_t PacketLength);
 
@@ -136,15 +138,14 @@ void *mainThread(void *arg0)
 
 #if 1
     // Sets up display
-    Display_Handle displayHandle;
     Display_init();
-    displayHandle = Display_open(Display_Type_UART, NULL);
-    if (displayHandle == NULL)
+    gDisplayHandle = Display_open(Display_Type_UART, NULL);
+    if (gDisplayHandle == NULL)
     {
         // Display_open() failed
         return (NULL);
     } else {
-        Display_printf(displayHandle, 0, 0, "Hi from ChromaAeon74! :D");
+        Display_printf(gDisplayHandle, 0, 0, "Hi from ChromaAeon74! :D");
     }
 #endif
 
@@ -201,6 +202,8 @@ void *mainThread(void *arg0)
         /* Create packet with incrementing sequence number and random payload */
 
        RF_cmdPropTx.pktLen = CreatePingPacket();
+       Display_printf(gDisplayHandle, 0, 0, "RF_cmdPropTx.pktLen %d",RF_cmdPropTx.pktLen);
+
         /* Set absolute TX time to utilize automatic power management */
         curtime += PACKET_INTERVAL;
         RF_cmdPropTx.startTime = curtime;
@@ -224,6 +227,8 @@ void *mainThread(void *arg0)
                                           echoCallback, (RF_EventCmdDone | RF_EventRxEntryDone |
                                           RF_EventLastCmdDone));
         }
+
+        Display_printf(gDisplayHandle, 0, 0, "terminationReason 0x%lx",terminationReason);
 
         switch(terminationReason)
         {
@@ -249,6 +254,7 @@ void *mainThread(void *arg0)
         }
 
         uint32_t cmdStatus = ((volatile RF_Op*)&RF_cmdPropTx)->status;
+        Display_printf(gDisplayHandle, 0, 0, "cmdStatus 0x%x",cmdStatus);
         switch(cmdStatus)
         {
             case PROP_DONE_OK:
@@ -288,6 +294,8 @@ static void echoCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e)
     eventLog[evIndex++ & 0x1F] = e;
 #endif// LOG_RADIO_EVENTS
 
+    Display_printf(gDisplayHandle, 0, 0, "echoCallback: RF_EventMask 0x%lx",e);
+
     if((e & RF_EventCmdDone) && !(e & RF_EventLastCmdDone))
     {
         /* Successful TX */
@@ -310,6 +318,8 @@ static void echoCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e)
         /* Copy the payload + status byte to the rxPacket variable */
         memcpy(rxPacket, packetDataPointer, (packetLength + 1));
         CheckPing(rxPacket,packetLength);
+
+        Display_printf(gDisplayHandle, 0, 0, "Received %d byte packet",packetLength);
 
         RFQueue_nextEntry();
     }
@@ -340,6 +350,24 @@ uint8_t gSeq;
 
 
 // radio stuff
+/* 
+21 c8 19 47 44 ff ff 47 44 78 56 34 12 11 12 67  !..GD..GDxV4...g 
+21 c8 
+0c 
+47 44 
+ff ff 
+47 44 
+78 56 34 12 11 12 67 
+ 
+21 c8 
+08 
+47 44 
+ff ff 
+47 44 
+78 56 34 12 11 12 67 44 
+00  
+*/
+
 static uint8_t CreatePingPacket()
 {
     struct MacFrameBcast *txframe = (struct MacFrameBcast *)txPacket;
@@ -362,11 +390,13 @@ static uint8_t CreatePingPacket()
     txframe->fcs.destAddrType = 2;
     txframe->fcs.srcAddrType = 3;
     txframe->seq = gSeq++;
-    txframe->dstPan = PROTO_PAN_ID;
+    txframe->dstPan = PROTO_PAN_ID_SUBGHZ;
     txframe->dstAddr = 0xFFFF;
-    txframe->srcPan = PROTO_PAN_ID;
+    txframe->srcPan = PROTO_PAN_ID_SUBGHZ;
 
-    return (uint8_t) sizeof(txframe);
+    txframe->src[8] = PKT_PING;
+
+    return (uint8_t) sizeof(*txframe) + 3;   // NB: Tx len includes CRC
 }
 
 static bool pktIsUnicast(const void *buffer)

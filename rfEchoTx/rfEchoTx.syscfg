@@ -14,15 +14,14 @@ const custom   = scripting.addModule("/ti/devices/radioconfig/custom");
 const rfdesign = scripting.addModule("/ti/devices/radioconfig/rfdesign");
 const Display  = scripting.addModule("/ti/display/Display", {}, false);
 const Display1 = Display.addInstance();
+const Board    = scripting.addModule("/ti/drivers/Board");
 const GPIO     = scripting.addModule("/ti/drivers/GPIO");
 const RF       = scripting.addModule("/ti/drivers/RF");
 
 /**
  * Write custom configuration values to the imported modules.
  */
-CCFG.xoscCapArray            = true;
 CCFG.xoscCapArrayDelta       = 0xC1;
-CCFG.enableBootloader        = true;
 CCFG.dioBootloaderBackdoor   = 15;
 CCFG.levelBootloaderBackdoor = "Active low";
 CCFG.ccfgTemplate.$name      = "ti_devices_CCFG_CCFGCC26XXTemplate0";
@@ -37,15 +36,18 @@ custom.radioConfigcustom868.deviation              = 165.0;
 custom.radioConfigcustom868.rxFilterBw             = "621.6";
 custom.radioConfigcustom868.codeExportConfig.$name = "ti_devices_radioconfig_code_export_param0";
 
-Display1.$name             = "CONFIG_Display_0";
-Display1.baudRate          = 921600;
-Display1.uart.$name        = "CONFIG_UART2_1";
-Display1.uart.uart.$assign = "UART0";
+Display1.$name                   = "CONFIG_Display_0";
+Display1.baudRate                = 921600;
+Display1.uartBufferSize          = 8196;
+Display1.uart.$name              = "CONFIG_UART2_1";
+Display1.uart.uart.txPin.$assign = "DIO_9";
+Display1.uart.uart.rxPin.$assign = "DIO_8";
+
+Board.generateInitializationFunctions = false;
 
 /**
  * Pinmux solution for unlocked pins/peripherals. This ensures that minor changes to the automatic solver in a future
  * version of the tool will not impact the pinmux you originally saw.  These lines can be completely deleted in order to
  * re-solve from scratch.
  */
-Display1.uart.uart.txPin.$suggestSolution = "DIO_1";
-Display1.uart.uart.rxPin.$suggestSolution = "DIO_0";
+Display1.uart.uart.$suggestSolution = "UART0";
