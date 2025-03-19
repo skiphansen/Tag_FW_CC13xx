@@ -21,11 +21,9 @@ void Epd_Sleep(void);
 void Epd_DigitalWrite(int pin, int value);
 int Epd_DigitalRead(int pin);
 void Epd_DelayMs(unsigned int delaytime);
-
-// Image buffer
-extern uint8_t imageBuffer[EPD_WIDTH * EPD_HEIGHT / 8];
-
-// Function to send image data part by part to the display
-void Epd_DisplayPart(uint16_t xStart, uint16_t yStart, uint16_t width, uint16_t height);
+void Epd_TurnOnDisplay(void);
+void Epd_ClearBlack(void);
+void Epd_Draw(void);
+void Epd_DrawPattern(void);
 
 #endif // EPD_H

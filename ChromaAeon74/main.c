@@ -46,7 +46,7 @@
 #include "ti/drivers/gpio/GPIOCC26XX.h"
 #include "ti_drivers_config.h"
 #include "epd.h"
-
+#include "img.h"
 #define FOOTER "=================================================="
 
 /* Buffer placed in RAM to hold bytes read from non-volatile storage. */
@@ -75,7 +75,7 @@ void *mainThread(void *arg0)
         Display_printf(displayHandle, 0, 0, "Hi from ChromaAeon74! :D");
     }
 #endif
-#if 1
+#if 0
     // Sets up the NVS
     NVS_Handle nvsHandle;
     NVS_Params nvsParams;
@@ -99,7 +99,6 @@ void *mainThread(void *arg0)
         NvrAttribs.regionSize,NvrAttribs.sectorSize);
 #endif
 
-#if 1
     // Try reading a NVS and printing output
     for (int page=0; page < 0x100; page ++) {
         // Choose memory offset to read
@@ -119,15 +118,21 @@ void *mainThread(void *arg0)
 #endif
 
 
-    //EPD
-    // Display_printf(displayHandle, 0, 0, "INIT EPAPER...");
+    // Init
+    LOG("INIT EPAPER...");
     Epd_Init();
-    // Display_printf(displayHandle, 0, 0, "INIT EPAPER FINISHED!");
-    Epd_DisplayPart(0,0,200,20);
-    Epd_Sleep();
+    LOG("INIT EPAPER FINISHED!");
 
-    // Display_printf(displayHandle, 0, 0, "Done!");
-#endif
+    // Drawing
+    LOG("Drawing...");
+    Epd_Draw();
+    LOG("Done!");
+
+    // Sleep
+    LOG("Sleeping epd!");
+    Epd_Sleep();
+    LOG("EOP");
+
 
     return (NULL);
 }
