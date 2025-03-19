@@ -56,9 +56,8 @@
 /* Packet TX/RX Configuration */
 #define PAYLOAD_LENGTH      255
 /* Set packet interval to 1000ms */
-#define PACKET_INTERVAL     (uint32_t)(4000000*1.0f)
-/* Set Receive timeout to 2000ms */
-#define RX_TIMEOUT          (uint32_t)(4000000*2)
+#define PACKET_INTERVAL     (uint32_t)(1100000)
+#define RX_TIMEOUT          (uint32_t)(1000000)
 /* NOTE: Only two data entries supported at the moment */
 #define NUM_DATA_ENTRIES    2
 /* The Data Entries data field will contain:
@@ -66,6 +65,8 @@
  * Max 30 payload bytes
  * 1 status byte (RF_cmdPropRx.rxConf.bAppendStatus = 0x1) */
 #define NUM_APPENDED_BYTES  2
+
+#define LOG(format, ... ) Display_printf(gDisplayHandle, 0, 0,format,## __VA_ARGS__)
 
 /* Log radio events in the callback */
 //#define LOG_RADIO_EVENTS
@@ -125,6 +126,28 @@ static volatile uint8_t evIndex = 0;
 
 Display_Handle gDisplayHandle;
 
+// rfc_CMD_FS_t.frequency, rfc_CMD_FS_t.fractFreq values for 868Mhz band
+const uint16_t g868SynthValues[6][2] = {
+   {0x360,0x0000},   // Channel 100 / CHANNR 0:  863.999756 Mhz
+   {0x361,0x01CD},   // Channel 101 / CHANNR 3:  865.006653 Mhz
+   {0x362,0x0367},   // Channel 102 / CHANNR 6:  866.013550 Mhz
+   {0x363,0x0534},   // Channel 103 / CHANNR 9:  867.020447 Mhz
+   {0x364,0x0700},   // Channel 104 / CHANNR 12: 868.027344 Mhz
+   {0x365,0x08CD}   // Channel 105 / CHANNR 15: 869.034241 Mhz
+};
+
+// rfc_CMD_FS_t.frequency, rfc_CMD_FS_t.fractFreq values for 868Mhz band
+const uint16_t g915SynthValues[6][2] = {
+   {0x387,0x0000},   // Channel 200 / CHANNR 0:  902.999756 Mhz
+   {0x38b,0x0700},   // Channel 201 / CHANNR 12: 907.027344 Mhz
+   {0x38f,0x0E00},   // Channel 202 / CHANNR 24: 911.054932 Mhz
+   {0x393,0x1534},   // Channel 203 / CHANNR 36: 915.082520 Mhz
+   {0x397,0x1C34},   // Channel 204 / CHANNR 48: 919.110107 Mhz
+   {0x39b,0x2334}   // Channel 205 / CHANNR 60: 923.137695 Mhz
+};
+
+uint8_t gChannel = 99;
+
 static uint8_t CreatePingPacket(void);
 void CheckPing(uint8_t *pRx,uint8_t PacketLength);
 
@@ -145,7 +168,7 @@ void *mainThread(void *arg0)
         // Display_open() failed
         return (NULL);
     } else {
-        Display_printf(gDisplayHandle, 0, 0, "Hi from ChromaAeon74! :D");
+        LOG("Hi from ChromaAeon74! :D");
     }
 #endif
 
@@ -184,27 +207,64 @@ void *mainThread(void *arg0)
     RF_cmdPropRx.endTrigger.triggerType = TRIG_REL_PREVEND;
     RF_cmdPropRx.endTime = RX_TIMEOUT;
 
-    /* Request access to the radio */
-#if defined(DeviceFamily_CC26X0R2)
-    rfHandle = RF_open(&rfObject, &RF_prop, (RF_RadioSetup*)&RF_cmdPropRadioSetup, &rfParams);
-#else
-    rfHandle = RF_open(&rfObject, &RF_prop, (RF_RadioSetup*)&RF_cmdPropRadioDivSetup, &rfParams);
-#endif// DeviceFamily_CC26X0R2
-
-    /* Set the frequency */
-    RF_postCmd(rfHandle, (RF_Op*)&RF_cmdFs, RF_PriorityNormal, NULL, 0);
-
-    /* Get current time */
-    curtime = RF_getCurrentTime();
-
+    int Pings = 4;
+    bool bRfOpen = false;
     while(1)
     {
+
+       if(Pings++ > 2) {
+       // Next channel
+          Pings = 0;
+          gChannel++;
+          if(gChannel == 106) {
+             if(bRfOpen) {
+                bRfOpen = false;
+                RF_close(rfHandle);
+             }
+             gChannel = 200;
+
+          }
+          else if(gChannel == 206) {
+             gChannel = 100;
+          }
+
+          if(gChannel >= 100 && gChannel <= 105) {
+          // 866 Mhz
+             RF_cmdPropRadioDivSetup.centerFreq = g868SynthValues[gChannel-100][0];
+             RF_cmdFs.frequency = g868SynthValues[gChannel-100][0];
+             RF_cmdFs.fractFreq = g868SynthValues[gChannel-100][1];
+          }
+          else if(gChannel >= 200 && gChannel <= 205) {
+          // 915 Mhz
+             RF_cmdPropRadioDivSetup.centerFreq = g868SynthValues[gChannel-200][0];
+             RF_cmdFs.frequency = g915SynthValues[gChannel-200][0];
+             RF_cmdFs.fractFreq = g915SynthValues[gChannel-200][1];
+          }
+          else {
+             LOG("%d in an invalid channel",gChannel);
+             break;
+          }
+
+          if(bRfOpen) {
+             RF_close(rfHandle);
+          }
+          bRfOpen = true;
+          /* Request access to the radio */
+          rfHandle = RF_open(&rfObject, &RF_prop, (RF_RadioSetup*)&RF_cmdPropRadioDivSetup, &rfParams);
+
+          /* Set the frequency */
+          RF_postCmd(rfHandle, (RF_Op*)&RF_cmdFs, RF_PriorityNormal, NULL, 0);
+          LOG("Pinging on channel %d",gChannel);
+       }
+
         /* Create packet with incrementing sequence number and random payload */
 
        RF_cmdPropTx.pktLen = CreatePingPacket();
-       Display_printf(gDisplayHandle, 0, 0, "RF_cmdPropTx.pktLen %d",RF_cmdPropTx.pktLen);
+       // LOG("RF_cmdPropTx.pktLen %d",RF_cmdPropTx.pktLen);
 
         /* Set absolute TX time to utilize automatic power management */
+       /* Get current time */
+       curtime = RF_getCurrentTime();
         curtime += PACKET_INTERVAL;
         RF_cmdPropTx.startTime = curtime;
 
@@ -228,7 +288,7 @@ void *mainThread(void *arg0)
                                           RF_EventLastCmdDone));
         }
 
-        Display_printf(gDisplayHandle, 0, 0, "terminationReason 0x%lx",terminationReason);
+        // LOG("terminationReason 0x%lx",terminationReason);
 
         switch(terminationReason)
         {
@@ -254,7 +314,7 @@ void *mainThread(void *arg0)
         }
 
         uint32_t cmdStatus = ((volatile RF_Op*)&RF_cmdPropTx)->status;
-        Display_printf(gDisplayHandle, 0, 0, "cmdStatus 0x%x",cmdStatus);
+        // LOG("cmdStatus 0x%x",cmdStatus);
         switch(cmdStatus)
         {
             case PROP_DONE_OK:
@@ -286,6 +346,7 @@ void *mainThread(void *arg0)
                 while(1);
         }
     }
+    while(1);
 }
 
 static void echoCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e)
@@ -294,7 +355,7 @@ static void echoCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e)
     eventLog[evIndex++ & 0x1F] = e;
 #endif// LOG_RADIO_EVENTS
 
-    Display_printf(gDisplayHandle, 0, 0, "echoCallback: RF_EventMask 0x%lx",e);
+    // LOG("echoCallback: RF_EventMask 0x%lx",e);
 
     if((e & RF_EventCmdDone) && !(e & RF_EventLastCmdDone))
     {
@@ -319,7 +380,7 @@ static void echoCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e)
         memcpy(rxPacket, packetDataPointer, (packetLength + 1));
         CheckPing(rxPacket,packetLength);
 
-        Display_printf(gDisplayHandle, 0, 0, "Received %d byte packet",packetLength);
+        LOG("Received %d byte packet",packetLength);
 
         RFQueue_nextEntry();
     }
@@ -394,7 +455,7 @@ static uint8_t CreatePingPacket()
     txframe->dstAddr = 0xFFFF;
     txframe->srcPan = PROTO_PAN_ID_SUBGHZ;
 
-    txframe->src[8] = PKT_PING;
+    (&txframe->src[7])[1] = PKT_PING;
 
     return (uint8_t) sizeof(*txframe) + 3;   // NB: Tx len includes CRC
 }

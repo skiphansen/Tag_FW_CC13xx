@@ -34,6 +34,7 @@ custom.radioConfigcustom868.whitening              = "CC1101/CC2500 compatible";
 custom.radioConfigcustom868.syncWord               = 0xD391D391;
 custom.radioConfigcustom868.deviation              = 165.0;
 custom.radioConfigcustom868.rxFilterBw             = "621.6";
+custom.radioConfigcustom868.carrierFrequency       = 863.9900;
 custom.radioConfigcustom868.codeExportConfig.$name = "ti_devices_radioconfig_code_export_param0";
 
 Display1.$name                   = "CONFIG_Display_0";
