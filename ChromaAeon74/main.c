@@ -76,11 +76,12 @@ void *mainThread(void *arg0)
         Display_printf(displayHandle, 0, 0, "Hi from ChromaAeon74! :D");
     }
 #endif
-#ifdef NVS_TEST
+
+#if defined(NVS_TEST) || defined(NVS_DUMP)
     // Sets up the NVS
     NVS_Handle nvsHandle;
     NVS_Params nvsParams;
-    NVS_Attrs NvrAttribs;
+    NVS_Attrs regionAttrs;
 
     NVS_init();
     NVS_Params_init(&nvsParams);
@@ -93,13 +94,7 @@ void *mainThread(void *arg0)
         return (NULL);
     }
 
-#if 0
-    NVS_getAttrs(nvsHandle,&NvrAttribs);
-
-    LOG("regionSize 0x%x sectorSize 0x%x.",
-        NvrAttribs.regionSize,NvrAttribs.sectorSize);
-#endif
-
+#ifdef NVS_DUMP
     // Try reading a NVS and printing output
     for (int page=0; page < 0x100; page ++) {
         // Choose memory offset to read
@@ -115,8 +110,57 @@ void *mainThread(void *arg0)
         }
         Display_printf(displayHandle, 0, 0, "%s", print_buf);
     }
-    NVS_close(nvsHandle);
+#endif   // NVS_DUMP
+
+#ifdef NVS_TEST
+    do {
+       int_fast16_t status;
+
+       NVS_getAttrs(nvsHandle,&regionAttrs);
+
+       LOG("regionSize 0x%x sectorSize 0x%x.",
+           regionAttrs.regionSize,regionAttrs.sectorSize);
+       // Fetch the generic NVS region attributes for nvsHandle
+       NVS_getAttrs(nvsHandle, &regionAttrs);
+
+#ifndef NVS_TEST_READBACK_ONLY
+       // Erase the first sector of nvsHandle
+       status = NVS_erase(nvsHandle, 0, regionAttrs.sectorSize);
+       if (status != NVS_STATUS_SUCCESS) {
+          LOG("NVS_erase failed %d\n",status);
+          break;
+       }
+
+       // Write "Hello" to the base address of nvsHandle, verify after write
+       status = NVS_write(nvsHandle, 0, "Hello", strlen("Hello")+1, NVS_WRITE_POST_VERIFY);
+       if (status != NVS_STATUS_SUCCESS) {
+          LOG("NVS_write failed %d\n",status);
+          break;
+       }
 #endif
+
+       // Copy "Hello" from nvsHandle into local 'buf'
+       status = NVS_read(nvsHandle, 0, buf, strlen("Hello")+1);
+       if (status != NVS_STATUS_SUCCESS) {
+           // Error handling code
+          LOG("NVS_read failed %d\n",status);
+          break;
+       }
+
+       // Print the string from fetched NVS storage
+       LOG("readback '%s'\n", buf);
+       if (regionAttrs.regionBase == NVS_REGION_NOT_ADDRESSABLE) {  
+          LOG("NVS_REGION_NOT_ADDRESSABLE\n");
+       }
+
+       // close the region
+       NVS_close(nvsHandle);
+
+    } while(false);
+#endif   // NVS_TEST
+
+    NVS_close(nvsHandle);
+#endif   // defined(NVS_TEST) || defined(NVS_DUMP)
 
 #ifdef EPD_TEST
     // Init
