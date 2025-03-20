@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <ti/drivers/GPIO.h>
 #include "ti_drivers_config.h"
+#include "main.h"
+
+#ifdef EPD_CODE
 
 // Helper function to write to a pin
 void Epd_DigitalWrite(int pin, int value) {
@@ -154,6 +157,18 @@ void Epd_ClearBlack(void)
     Epd_TurnOnDisplay();
 }
 
+void Epd_SendBlack(void)
+{
+    uint32_t Width =(EPD_WIDTH % 8 == 0)?(EPD_WIDTH / 8 ):(EPD_WIDTH / 8 + 1);
+    uint32_t Height = EPD_HEIGHT;
+
+    uint32_t i;
+    for(i=0; i<Width*Height; i++) {
+        Epd_SendData(0x00);
+
+    }
+}
+
 void Epd_DrawPattern(void)
 {
     uint32_t Width =(EPD_WIDTH % 8 == 0)?(EPD_WIDTH / 8 ):(EPD_WIDTH / 8 + 1);
@@ -170,8 +185,10 @@ void Epd_DrawPattern(void)
     }
     Epd_TurnOnDisplay();
 }
+#endif   // EPD_CODE
 
-void Epd_Draw(void)
+#ifdef EPD_TEST
+void Epd_Draw_Image(void)
 {
     uint32_t Width = (EPD_WIDTH % 8 == 0) ? (EPD_WIDTH / 8) : (EPD_WIDTH / 8 + 1);  // Width in bytes, rounding up to handle partial bytes
     uint32_t Height = EPD_HEIGHT;
@@ -184,8 +201,6 @@ void Epd_Draw(void)
     uint32_t i, j;
     uint8_t output;
 
-    Epd_SendCommand(0x10);
-    
     for (j = 0; j < Height; j++) {
         for (i = 0; i < Width; i++) {
             if (i >= horizontal_offset / 8 && i < (horizontal_offset + IMG_WIDTH) / 8 && j >= vertical_offset && j < (vertical_offset + IMG_HEIGHT)) {
@@ -199,12 +214,21 @@ void Epd_Draw(void)
             Epd_SendData(output);
         }
     }
+}
 
-    Epd_SendCommand(0x13);
-    for (i = 0; i < Width * Height; i++) {
-        uint8_t output = 0x00;
-        Epd_SendData(output);
-    }
-
+void Epd_Draw(void)
+{
+   Epd_SendCommand(0x10);
+#ifdef EPD_TEST_BACKGROUND_WHITE
+   Epd_Draw_Image();
+   Epd_SendCommand(0x13);
+   Epd_SendBlack();
+#else
+   Epd_SendBlack();
+   Epd_SendCommand(0x13);
+   Epd_Draw_Image();
+#endif
     Epd_TurnOnDisplay();
 }
+#endif
+

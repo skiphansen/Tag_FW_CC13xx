@@ -47,6 +47,7 @@
 #include "ti_drivers_config.h"
 #include "epd.h"
 #include "img.h"
+#include "main.h"
 #define FOOTER "=================================================="
 
 /* Buffer placed in RAM to hold bytes read from non-volatile storage. */
@@ -62,7 +63,7 @@ char print_buf[(BUF_SIZE * 2) + 1];
 void *mainThread(void *arg0)
 {
 
-#if 1
+#ifdef SERIAL_LOG
     // Sets up display
     Display_Handle displayHandle;
     Display_init();
@@ -75,7 +76,7 @@ void *mainThread(void *arg0)
         Display_printf(displayHandle, 0, 0, "Hi from ChromaAeon74! :D");
     }
 #endif
-#if 0
+#ifdef NVS_TEST
     // Sets up the NVS
     NVS_Handle nvsHandle;
     NVS_Params nvsParams;
@@ -117,7 +118,7 @@ void *mainThread(void *arg0)
     NVS_close(nvsHandle);
 #endif
 
-
+#ifdef EPD_TEST
     // Init
     LOG("INIT EPAPER...");
     Epd_Init();
@@ -132,6 +133,7 @@ void *mainThread(void *arg0)
     LOG("Sleeping epd!");
     Epd_Sleep();
     LOG("EOP");
+#endif
 
 
     return (NULL);
