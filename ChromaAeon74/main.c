@@ -41,6 +41,7 @@
 #include <ti/display/Display.h>
 #include <ti/drivers/NVS.h>
 #include <ti/drivers/GPIO.h>
+#include <ti/drivers/UART2.h>
 
 /* Driver configuration */
 #include "ti/drivers/gpio/GPIOCC26XX.h"
@@ -55,27 +56,14 @@
 static char buf[BUF_SIZE];
 char print_buf[(BUF_SIZE * 2) + 1];
 
-#define LOG(format, ... ) Display_printf(displayHandle, 0, 0,format,## __VA_ARGS__)
 
 /*
  *  ======== mainThread ========
  */
 void *mainThread(void *arg0)
 {
-
-#ifdef SERIAL_LOG
-    // Sets up display
-    Display_Handle displayHandle;
-    Display_init();
-    displayHandle = Display_open(Display_Type_UART, NULL);
-    if (displayHandle == NULL)
-    {
-        // Display_open() failed
-        return (NULL);
-    } else {
-        Display_printf(displayHandle, 0, 0, "Hi from ChromaAeon74! :D");
-    }
-#endif
+   InitLogging();
+   LOG("ChromaAeon74 compiled " __DATE__ " " __TIME__ "\n");
 
 #if defined(NVS_TEST) || defined(NVS_DUMP)
     // Sets up the NVS
