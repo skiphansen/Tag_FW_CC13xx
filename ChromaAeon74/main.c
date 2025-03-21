@@ -56,6 +56,14 @@
 static char buf[BUF_SIZE];
 char print_buf[(BUF_SIZE * 2) + 1];
 
+#define SN_LEN    7
+#define SN_OFFSET    0x2000
+uint8_t gSN[SN_LEN];
+
+NVS_Handle gNvs;
+
+void InitSN(void);
+
 
 /*
  *  ======== mainThread ========
@@ -65,9 +73,9 @@ void *mainThread(void *arg0)
    InitLogging();
    LOG("ChromaAeon74 compiled " __DATE__ " " __TIME__ "\n");
 
-#if defined(NVS_TEST) || defined(NVS_DUMP)
-    // Sets up the NVS
-    NVS_Handle nvsHandle;
+   InitSN();
+
+  // Sets up the NVS
     NVS_Params nvsParams;
     NVS_Attrs regionAttrs;
 
@@ -75,10 +83,10 @@ void *mainThread(void *arg0)
     NVS_Params_init(&nvsParams);
 
 
-    nvsHandle = NVS_open(CONFIG_NVS_FLASH, &nvsParams);
-    if (nvsHandle == NULL)
+    gNvs = NVS_open(CONFIG_NVS_FLASH, &nvsParams);
+    if (gNvs == NULL)
     {
-        // Display_printf(displayHandle, 0, 0, "NVS_open() failed.");
+        LOG("NVS_open() failed\n");
         return (NULL);
     }
 
@@ -89,14 +97,14 @@ void *mainThread(void *arg0)
         uint32_t byte_offset = page * sizeof(buf);
 
         // Read NVS
-        NVS_read(nvsHandle, byte_offset, (void *)buf, sizeof(buf));
+        NVS_read(gNvs, byte_offset, (void *)buf, sizeof(buf));
 
         // Print as ASCII
         char *ptr = &print_buf[0];
         for (int i = 0; i < sizeof(buf); i++) {
             ptr += sprintf(ptr, "%02x", buf[i]);
         }
-        Display_printf(displayHandle, 0, 0, "%s", print_buf);
+        LOG("%s", print_buf);
     }
 #endif   // NVS_DUMP
 
@@ -104,31 +112,31 @@ void *mainThread(void *arg0)
     do {
        int_fast16_t status;
 
-       NVS_getAttrs(nvsHandle,&regionAttrs);
+       NVS_getAttrs(gNvs,&regionAttrs);
 
        LOG("regionSize 0x%x sectorSize 0x%x.",
            regionAttrs.regionSize,regionAttrs.sectorSize);
-       // Fetch the generic NVS region attributes for nvsHandle
-       NVS_getAttrs(nvsHandle, &regionAttrs);
+       // Fetch the generic NVS region attributes for gNvs
+       NVS_getAttrs(gNvs, &regionAttrs);
 
 #ifndef NVS_TEST_READBACK_ONLY
-       // Erase the first sector of nvsHandle
-       status = NVS_erase(nvsHandle, 0, regionAttrs.sectorSize);
+       // Erase the first sector of gNvs
+       status = NVS_erase(gNvs, 0, regionAttrs.sectorSize);
        if (status != NVS_STATUS_SUCCESS) {
           LOG("NVS_erase failed %d\n",status);
           break;
        }
 
-       // Write "Hello" to the base address of nvsHandle, verify after write
-       status = NVS_write(nvsHandle, 0, "Hello", strlen("Hello")+1, NVS_WRITE_POST_VERIFY);
+       // Write "Hello" to the base address of gNvs, verify after write
+       status = NVS_write(gNvs, 0, "Hello", strlen("Hello")+1, NVS_WRITE_POST_VERIFY);
        if (status != NVS_STATUS_SUCCESS) {
           LOG("NVS_write failed %d\n",status);
           break;
        }
 #endif
 
-       // Copy "Hello" from nvsHandle into local 'buf'
-       status = NVS_read(nvsHandle, 0, buf, strlen("Hello")+1);
+       // Copy "Hello" from gNvs into local 'buf'
+       status = NVS_read(gNvs, 0, buf, strlen("Hello")+1);
        if (status != NVS_STATUS_SUCCESS) {
            // Error handling code
           LOG("NVS_read failed %d\n",status);
@@ -142,13 +150,11 @@ void *mainThread(void *arg0)
        }
 
        // close the region
-       NVS_close(nvsHandle);
+       NVS_close(gNvs);
 
     } while(false);
 #endif   // NVS_TEST
 
-    NVS_close(nvsHandle);
-#endif   // defined(NVS_TEST) || defined(NVS_DUMP)
 
 #ifdef EPD_TEST
     // Init
@@ -167,6 +173,15 @@ void *mainThread(void *arg0)
     LOG("EOP");
 #endif
 
+    NVS_close(gNvs);
 
     return (NULL);
 }
+
+void InitSN()
+{
+   memcpy(gSN,(void *) SN_OFFSET,SN_LEN);
+   LOG("SN: ");
+   DUMP_HEX(gSN,sizeof(gSN));
+}
+

@@ -75,7 +75,9 @@
 MEMORY
 {
     /* Application stored in and executes from internal flash */
-    FLASH (RX) : origin = FLASH_BASE, length = FLASH_SIZE
+    FLASH1 (RX) : origin = FLASH_BASE, length = 0x2000
+    /* skip 0x2000 to 0x6fff to avoid clobbering SN and other per device data */
+    FLASH (RX) : origin = FLASH_BASE+0x7000, length = FLASH_SIZE - 0x7000
     /* Application uses internal RAM for data */
     SRAM (RWX) : origin = RAM_BASE, length = RAM_SIZE
     /* Application can use GPRAM region as RAM if cache is disabled in the CCFG
@@ -96,14 +98,14 @@ MEMORY
 
 SECTIONS
 {
-    .resetVecs      :   > FLASH_BASE
+    .resetVecs      :   > FLASH1
+    .const          :   > FLASH1
+    .constdata      :   > FLASH1
+    .binit          :   > FLASH1
+    .cinit          :   > FLASH1
     .text           :   > FLASH
     .TI.ramfunc     : {} load=FLASH, run=SRAM, table(BINIT)
-    .const          :   > FLASH
-    .constdata      :   > FLASH
     .rodata         :   > FLASH
-    .binit          :   > FLASH
-    .cinit          :   > FLASH
     .pinit          :   > FLASH
     .init_array     :   > FLASH
     .emb_text       :   > FLASH

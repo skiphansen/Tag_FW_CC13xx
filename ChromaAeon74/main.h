@@ -13,10 +13,15 @@
 #ifdef SERIAL_LOG
 void InitLogging(void);
 int LogPrintf(char *fmt, ...);
+void DumpHex(void *AdrIn,int Len);
 #define LOG(format, ... ) LogPrintf(format,## __VA_ARGS__)
+#define LOG_RAW(format, ... ) LogPrintf(format,## __VA_ARGS__)
+#define DUMP_HEX(x,y) DumpHex(x,y)
 #else
 #define InitLogging()
 #define LOG(format, ... )
+#define LOG_RAW(format, ... )
+#define DUMP_HEX(x,y) DumpHex(x,y)
 #endif
 
 

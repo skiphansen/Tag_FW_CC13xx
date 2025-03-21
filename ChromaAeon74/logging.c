@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <ti/drivers/UART2.h>
 #include "ti_drivers_config.h"
 #include "main.h"
@@ -34,5 +35,37 @@ int LogPrintf(char *fmt, ...)
 
     return Len;
 }
+
+void DumpHex(void *AdrIn,int Len)
+{
+   unsigned char *Adr = (unsigned char *) AdrIn;
+   int i = 0;
+   int j;
+
+   while(i < Len) {
+      for(j = 0; j < 16; j++) {
+         if((i + j) == Len) {
+            break;
+         }
+         LOG_RAW("%02x ",Adr[i+j]);
+      }
+
+      LOG_RAW(" ");
+      for(j = 0; j < 16; j++) {
+         if((i + j) == Len) {
+            break;
+         }
+         if(isprint(Adr[i+j])) {
+            LOG_RAW("%c",Adr[i+j]);
+         }
+         else {
+            LOG_RAW(".");
+         }
+      }
+      i += 16;
+      LOG_RAW("\n");
+   }
+}
+
 #endif   // SERIAL_LOG
 
