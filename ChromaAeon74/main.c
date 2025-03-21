@@ -181,7 +181,7 @@ void *mainThread(void *arg0)
 void InitSN()
 {
    memcpy(gSN,(void *) SN_OFFSET,SN_LEN);
-   LOG("SN: ");
-   DUMP_HEX(gSN,sizeof(gSN));
+   LOG("SN: %c%c%02x%02x%02x%02x%c\n",
+       gSN[0],gSN[1],gSN[2],gSN[3],gSN[4],gSN[5],gSN[6],gSN[7]);
 }
 
