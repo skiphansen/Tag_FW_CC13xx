@@ -58,9 +58,9 @@ char print_buf[(BUF_SIZE * 2) + 1];
 
 #define SN_LEN    7
 #define SN_OFFSET    0x2000
-uint8_t gSN[SN_LEN];
 
 NVS_Handle gNvs;
+uint8_t mSelfMac[8];
 
 void InitSN(void);
 
@@ -180,8 +180,44 @@ void *mainThread(void *arg0)
 
 void InitSN()
 {
-   memcpy(gSN,(void *) SN_OFFSET,SN_LEN);
+   char SN[SN_LEN];
+
+   memcpy(SN,(void *) SN_OFFSET,SN_LEN);
+
+   if(SN[0] != 'S' || SN[1] != 'R' || SN[6] != 'C') {
+      LOG("Invalid SN:\n");
+      DUMP_HEX(SN,SN_LEN);
+      LOG("Setting default SN\n");
+      strcpy(SN,"SR0000000000C");
+   }
+   mSelfMac[7] = 0x44;
+   mSelfMac[6] = 0x67;
+   mSelfMac[3] = SN[2];
+   mSelfMac[2] = SN[3];
+   mSelfMac[1] = SN[4];
+   mSelfMac[0] = SN[5];
+// Since the first 2 characters are known to be upper case ASCII subtract
+// 'A' from the value to convert it from a 7 bit value to a 5 bit value.
+// 
+// This allows us to use the extra 3 bits to convey something else like the
+// hardware variation.
+// 
+// i.e. Multiple incompatible hardware variations that need different FW 
+// images, but otherwise are compatible can share a single HWID and the 
+// AP can parse the "extra" bits in the MAC address to select the 
+// correct OTA image.
+
+   mSelfMac[5] = SN[0] - 'A';
+   mSelfMac[4] = SN[1] - 'A';
+#ifdef HW_VARIANT
+   mSelfMac[5] |= HW_VARIANT << 5;
+   LOG("HW variant %d\n",HW_VARIANT);
+#endif
+
    LOG("SN: %c%c%02x%02x%02x%02x%c\n",
-       gSN[0],gSN[1],gSN[2],gSN[3],gSN[4],gSN[5],gSN[6],gSN[7]);
+       SN[0],SN[1],SN[2],SN[3],SN[4],SN[5],SN[6]);
+
+   LOG("MAC: ");
+   DUMP_HEX(mSelfMac,sizeof(mSelfMac));
 }
 
