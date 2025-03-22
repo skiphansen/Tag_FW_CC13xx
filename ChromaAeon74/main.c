@@ -29,9 +29,6 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*
- *  ======== nvsexternal.c ========
- */
 
 #include <string.h>
 #include <stdlib.h>
@@ -39,7 +36,6 @@
 
 /* Driver Header files */
 #include <ti/display/Display.h>
-#include <ti/drivers/NVS.h>
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/UART2.h>
 
@@ -49,25 +45,16 @@
 #include "epd.h"
 #include "img.h"
 #include "main.h"
-#define FOOTER "=================================================="
+#include "img.h"
+#include "board.h"
 
-/* Buffer placed in RAM to hold bytes read from non-volatile storage. */
-#define BUF_SIZE 4096
-static char buf[BUF_SIZE];
-char print_buf[(BUF_SIZE * 2) + 1];
-
-#define SN_LEN    7
-#define SN_OFFSET    0x2000
+uint8_t gTempBuf[TEMP_BUF_SIZE];
 
 NVS_Handle gNvs;
 uint8_t mSelfMac[8];
 
 void InitSN(void);
 
-
-/*
- *  ======== mainThread ========
- */
 void *mainThread(void *arg0)
 {
    InitLogging();
@@ -82,7 +69,6 @@ void *mainThread(void *arg0)
     NVS_init();
     NVS_Params_init(&nvsParams);
 
-
     gNvs = NVS_open(CONFIG_NVS_FLASH, &nvsParams);
     if (gNvs == NULL)
     {
@@ -90,88 +76,11 @@ void *mainThread(void *arg0)
         return (NULL);
     }
 
-#ifdef NVS_DUMP
-    // Try reading a NVS and printing output
-    for (int page=0; page < 0x100; page ++) {
-        // Choose memory offset to read
-        uint32_t byte_offset = page * sizeof(buf);
-
-        // Read NVS
-        NVS_read(gNvs, byte_offset, (void *)buf, sizeof(buf));
-
-        // Print as ASCII
-        char *ptr = &print_buf[0];
-        for (int i = 0; i < sizeof(buf); i++) {
-            ptr += sprintf(ptr, "%02x", buf[i]);
-        }
-        LOG("%s", print_buf);
-    }
-#endif   // NVS_DUMP
-
-#ifdef NVS_TEST
-    do {
-       int_fast16_t status;
-
-       NVS_getAttrs(gNvs,&regionAttrs);
-
-       LOG("regionSize 0x%x sectorSize 0x%x.",
-           regionAttrs.regionSize,regionAttrs.sectorSize);
-       // Fetch the generic NVS region attributes for gNvs
-       NVS_getAttrs(gNvs, &regionAttrs);
-
-#ifndef NVS_TEST_READBACK_ONLY
-       // Erase the first sector of gNvs
-       status = NVS_erase(gNvs, 0, regionAttrs.sectorSize);
-       if (status != NVS_STATUS_SUCCESS) {
-          LOG("NVS_erase failed %d\n",status);
-          break;
-       }
-
-       // Write "Hello" to the base address of gNvs, verify after write
-       status = NVS_write(gNvs, 0, "Hello", strlen("Hello")+1, NVS_WRITE_POST_VERIFY);
-       if (status != NVS_STATUS_SUCCESS) {
-          LOG("NVS_write failed %d\n",status);
-          break;
-       }
-#endif
-
-       // Copy "Hello" from gNvs into local 'buf'
-       status = NVS_read(gNvs, 0, buf, strlen("Hello")+1);
-       if (status != NVS_STATUS_SUCCESS) {
-           // Error handling code
-          LOG("NVS_read failed %d\n",status);
-          break;
-       }
-
-       // Print the string from fetched NVS storage
-       LOG("readback '%s'\n", buf);
-       if (regionAttrs.regionBase == NVS_REGION_NOT_ADDRESSABLE) {  
-          LOG("NVS_REGION_NOT_ADDRESSABLE\n");
-       }
-
-       // close the region
-       NVS_close(gNvs);
-
-    } while(false);
-#endif   // NVS_TEST
-
-
-#ifdef EPD_TEST
-    // Init
-    LOG("INIT EPAPER...");
-    Epd_Init();
-    LOG("INIT EPAPER FINISHED!");
-
-    // Drawing
-    LOG("Drawing...");
-    Epd_Draw();
-    LOG("Done!");
-
-    // Sleep
-    LOG("Sleeping epd!");
-    Epd_Sleep();
-    LOG("EOP");
-#endif
+// Run any test code that is enabled
+    NvrDump();
+    NvrTest();
+    EpdTest();
+    WriteEpdImage();
 
     NVS_close(gNvs);
 
@@ -184,11 +93,14 @@ void InitSN()
 
    memcpy(SN,(void *) SN_OFFSET,SN_LEN);
 
-   if(SN[0] != 'S' || SN[1] != 'R' || SN[6] != 'C') {
+   if(SN[0] != SN_CHAR1 || SN[1] != SN_CHAR2 || SN[6] != SN_REV_CHAR) {
       LOG("Invalid SN:\n");
       DUMP_HEX(SN,SN_LEN);
       LOG("Setting default SN\n");
-      strcpy(SN,"SR0000000000C");
+      memset(SN,0,sizeof(SN));
+      SN[0] = SN_CHAR1;
+      SN[1] = SN_CHAR2;
+      SN[6] = SN_REV_CHAR;
    }
    mSelfMac[7] = 0x44;
    mSelfMac[6] = 0x67;
@@ -220,4 +132,5 @@ void InitSN()
    LOG("MAC: ");
    DUMP_HEX(mSelfMac,sizeof(mSelfMac));
 }
+
 
