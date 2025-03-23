@@ -111,6 +111,8 @@ void EpdTest()
 
 
 #ifdef WRITE_EPD_IMAGE
+extern const uint8_t img_weather[];
+
 void WriteEpdImage()
 {
    int_fast16_t status;
@@ -124,7 +126,6 @@ void WriteEpdImage()
       LOG("regionSize 0x%x sectorSize 0x%x.\n",
           regionAttrs.regionSize,regionAttrs.sectorSize);
       // Fetch the generic NVS region attributes for gNvs
-      NVS_getAttrs(gNvs, &regionAttrs);
 
       size_t EraseLen = SPI_FLASH_IMG_EACH;
       if((SPI_FLASH_IMG_EACH % SPI_FLASH_ERZ_SECTOR_SZ) != 0) {
@@ -139,48 +140,8 @@ void WriteEpdImage()
          break;
       }
 
-      uint32_t Width = (EPD_WIDTH % 8 == 0) ? (EPD_WIDTH / 8) : (EPD_WIDTH / 8 + 1);  // Width in bytes, rounding up to handle partial bytes
-      uint32_t Height = EPD_HEIGHT;
-      uint32_t imgWidthInBytes = (IMG_WIDTH % 8 == 0) ? (IMG_WIDTH / 8) : (IMG_WIDTH / 8 + 1);  // Width of the image in bytes
-
-      // Calculate the horizontal and vertical offsets to center the image
-      uint32_t horizontal_offset = (EPD_WIDTH - IMG_WIDTH) / 2;
-      uint32_t vertical_offset = (EPD_HEIGHT - IMG_HEIGHT) / 2;
-
-      uint32_t i, j;
-      uint8_t output;
-
-      LOG("\nSending secondary color @ 0x%x .",WrOffset);
-
-      for (j = 0; j < Height; j++) {
-          for (i = 0; i < Width; i++) {
-              if (i >= horizontal_offset / 8 && i < (horizontal_offset + IMG_WIDTH) / 8 && j >= vertical_offset && j < (vertical_offset + IMG_HEIGHT)) {
-                  // If within the bounds of the image data, draw from img_data
-                  uint32_t imgIndex = (j - vertical_offset) * imgWidthInBytes + (i - horizontal_offset / 8);
-                  output = (imgIndex < IMG_DATA_SIZE) ? img_data[imgIndex] : 0xFF;  // Ensure we don't go out of bounds
-              } else {
-                  // Else, fill with white (0xFF), which corresponds to 0b1 bits for each byte
-                  output = 0xFF;
-              }
-
-              gTempBuf[Wr++] = output;
-              if(Wr == SPI_FLASH_ERZ_SECTOR_SZ) {
-              // Flush sector worth of data to flash
-                 status = NVS_write(gNvs,WrOffset,gTempBuf,SPI_FLASH_ERZ_SECTOR_SZ,NVS_WRITE_POST_VERIFY);
-                 if (status != NVS_STATUS_SUCCESS) {
-                    LOG("NVS_write failed at 0x%x, %d\n",WrOffset,status);
-                    break;
-                 }
-                 LOG(".");
-                 WrOffset += SPI_FLASH_ERZ_SECTOR_SZ;
-                 Wr = 0;
-              }
-          }
-      }
-
-      LOG("\nSending secondary color @ 0x%x .",WrOffset);
-      for(i=0; i<Width*Height; i++) {
-         gTempBuf[Wr++] = output;
+      for(int i = 0; i < 0x17700; i++) {
+         gTempBuf[Wr++] = img_weather[i];
          if(Wr == SPI_FLASH_ERZ_SECTOR_SZ) {
          // Flush sector worth of data to flash
             status = NVS_write(gNvs,WrOffset,gTempBuf,SPI_FLASH_ERZ_SECTOR_SZ,NVS_WRITE_POST_VERIFY);

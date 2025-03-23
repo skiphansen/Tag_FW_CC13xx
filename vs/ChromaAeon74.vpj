@@ -132,9 +132,11 @@
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/startup_files/ccfg.c"/>
 			<F N="../ChromaAeon74/epd.c"/>
 			<F N="../ChromaAeon74/img.c"/>
+			<F N="../img_weather.c"/>
 			<F N="../ChromaAeon74/logging.c"/>
 			<F N="../ChromaAeon74/main.c"/>
 			<F N="../ChromaAeon74/main_nortos.c"/>
+			<F N="../common/radio.c"/>
 			<F N="../ChromaAeon74/test_code.c"/>
 			<F N="../ChromaAeon74/Debug/syscfg/ti_devices_config.c"/>
 			<F N="../ChromaAeon74/Debug/syscfg/ti_drivers_config.c"/>
@@ -188,6 +190,7 @@
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/interrupt.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/ioc.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/utils/List.h"/>
+			<F N="../common/logging.h"/>
 			<F N="../ChromaAeon74/main.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/kernel/nortos/NoRTOS.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/NVS.h"/>
@@ -198,6 +201,7 @@
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/power/PowerCC26XX.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/prcm.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/pwr_ctrl.h"/>
+			<F N="../common/radio.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/utils/RingBuf.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rom.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dpl/SemaphoreP.h"/>
