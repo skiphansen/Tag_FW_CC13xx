@@ -150,6 +150,8 @@ void WriteEpdImage()
       uint32_t i, j;
       uint8_t output;
 
+      LOG("\nSending secondary color @ 0x%x .",WrOffset);
+
       for (j = 0; j < Height; j++) {
           for (i = 0; i < Width; i++) {
               if (i >= horizontal_offset / 8 && i < (horizontal_offset + IMG_WIDTH) / 8 && j >= vertical_offset && j < (vertical_offset + IMG_HEIGHT)) {
@@ -174,6 +176,22 @@ void WriteEpdImage()
                  Wr = 0;
               }
           }
+      }
+
+      LOG("\nSending secondary color @ 0x%x .",WrOffset);
+      for(i=0; i<Width*Height; i++) {
+         gTempBuf[Wr++] = output;
+         if(Wr == SPI_FLASH_ERZ_SECTOR_SZ) {
+         // Flush sector worth of data to flash
+            status = NVS_write(gNvs,WrOffset,gTempBuf,SPI_FLASH_ERZ_SECTOR_SZ,NVS_WRITE_POST_VERIFY);
+            if (status != NVS_STATUS_SUCCESS) {
+               LOG("NVS_write failed at 0x%x, %d\n",WrOffset,status);
+               break;
+            }
+            LOG(".");
+            WrOffset += SPI_FLASH_ERZ_SECTOR_SZ;
+            Wr = 0;
+         }
       }
 
       if(Wr != 0) {
