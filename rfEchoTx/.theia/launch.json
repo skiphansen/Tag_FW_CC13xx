@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "ChromaAeon74",
+            "type": "ccs-debug",
+            "request": "launch",
+            "projectInfo": {
+                "name": "ChromaAeon74",
+                "resourceId": "/ChromaAeon74"
+            },
+            "debuggerSettings": {
+                "targetConfigs/CC1311R3.ccxml": {
+                    "Texas Instruments XDS110 USB Debug Probe/Cortex_M4_0": {
+                        "data": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n<PropertyValues>\n\n  <property id=\"FlashFiles\">\n    <curValue></curValue>\n  </property>\n\n</PropertyValues>\n"
+                    }
+                }
+            }
+        },
+        {
+            "name": "rfEchoTx_LP_CC1311P3_nortos_ticlang",
+            "type": "ccs-debug",
+            "request": "launch",
+            "projectInfo": {
+                "name": "rfEchoTx_LP_CC1311P3_nortos_ticlang",
+                "resourceId": "/rfEchoTx_LP_CC1311P3_nortos_ticlang"
+            }
+        }
+    ]
+}
