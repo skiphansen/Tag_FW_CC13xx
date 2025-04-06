@@ -38,6 +38,7 @@
 #include <ti/display/Display.h>
 #include <ti/drivers/rf/RF.h>
 #include <ti/drivers/GPIO.h>
+#include <ti/drivers/dpl/ClockP.h>
 
 #include "oepl-definitions.h"
 #include "oepl-proto.h"
@@ -282,10 +283,15 @@ void *mainThread(void *arg0)
         RF_EventMask terminationReason = RF_EventCmdAborted | RF_EventCmdPreempted;
         while(( terminationReason & RF_EventCmdAborted ) && ( terminationReason & RF_EventCmdPreempted ))
         {
+           LOG("%u calling RF_runCmd",ClockP_getSystemTicks());
             // Re-run if command was aborted due to SW TCXO compensation
             terminationReason = RF_runCmd(rfHandle, (RF_Op*)&RF_cmdPropTx, RF_PriorityNormal,
                                           echoCallback, (RF_EventCmdDone | RF_EventRxEntryDone |
                                           RF_EventLastCmdDone));
+            LOG("%u terminationReason 0x%x%08x",ClockP_getSystemTicks(),
+                (uint32_t) (terminationReason >> 16),
+                (uint32_t) (terminationReason & 0xffffffff));
+
         }
 
         // LOG("terminationReason 0x%lx",terminationReason);
@@ -314,7 +320,7 @@ void *mainThread(void *arg0)
         }
 
         uint32_t cmdStatus = ((volatile RF_Op*)&RF_cmdPropTx)->status;
-        // LOG("cmdStatus 0x%x",cmdStatus);
+        LOG("cmdStatus 0x%x",cmdStatus);
         switch(cmdStatus)
         {
             case PROP_DONE_OK:
@@ -355,7 +361,9 @@ static void echoCallback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e)
     eventLog[evIndex++ & 0x1F] = e;
 #endif// LOG_RADIO_EVENTS
 
-    // LOG("echoCallback: RF_EventMask 0x%lx",e);
+    LOG("%u echoCallback: RF_EventMask 0x%x%08x",ClockP_getSystemTicks(),
+        (uint32_t) (e >> 16),
+        (uint32_t) (e & 0xffffffff));
 
     if((e & RF_EventCmdDone) && !(e & RF_EventLastCmdDone))
     {

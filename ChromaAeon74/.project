@@ -17,4 +17,17 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.core.ccnature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>Common</name>
+			<type>2</type>
+			<locationURI>Common</locationURI>
+		</link>
+	</linkedResources>
+	<variableList>
+		<variable>
+			<name>Common</name>
+			<value>$%7BPARENT-1-PROJECT_LOC%7D/common</value>
+		</variable>
+	</variableList>
 </projectDescription>

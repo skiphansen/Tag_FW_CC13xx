@@ -49,7 +49,6 @@ extern void *mainThread(void *arg0);
 int main(void)
 {
     Board_init();
-
     /* Start NoRTOS */
     NoRTOS_start();
 

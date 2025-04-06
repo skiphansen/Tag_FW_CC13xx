@@ -4,6 +4,7 @@
 #include <ti/drivers/UART2.h>
 #include "ti_drivers_config.h"
 #include "main.h"
+#include "logging.h"
 
 UART2_Handle gDebugUart;
 

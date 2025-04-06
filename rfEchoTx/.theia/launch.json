@@ -24,6 +24,13 @@
             "projectInfo": {
                 "name": "rfEchoTx_LP_CC1311P3_nortos_ticlang",
                 "resourceId": "/rfEchoTx_LP_CC1311P3_nortos_ticlang"
+            },
+            "debuggerSettings": {
+                "targetConfigs/CC1311R3.ccxml": {
+                    "Texas Instruments XDS110 USB Debug Probe/Cortex_M4_0": {
+                        "data": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n<PropertyValues/>\n"
+                    }
+                }
             }
         }
     ]

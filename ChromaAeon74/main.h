@@ -10,23 +10,10 @@
 // #define NVS_DUMP
 // #define NVS_TEST
 // #define NVS_TEST_READBACK_ONLY
-#define WRITE_EPD_IMAGE
+// #define WRITE_EPD_IMAGE
 
 #define SERIAL_LOG
-
-#ifdef SERIAL_LOG
-void InitLogging(void);
-int LogPrintf(char *fmt, ...);
-void DumpHex(void *AdrIn,int Len);
-#define LOG(format, ... ) LogPrintf(format,## __VA_ARGS__)
-#define LOG_RAW(format, ... ) LogPrintf(format,## __VA_ARGS__)
-#define DUMP_HEX(x,y) DumpHex(x,y)
-#else
-#define InitLogging()
-#define LOG(format, ... )
-#define LOG_RAW(format, ... )
-#define DUMP_HEX(x,y) DumpHex(x,y)
-#endif
+#define DEBUG_LOGGING
 
 #if defined(EPD_TEST) || defined(WRITE_EPD_IMAGE)
 #define EPD_TEST_IMAGE_DATA
@@ -67,6 +54,13 @@ void NvrTest(void);
 #else
 #define NvrTest()
 #endif
+
+
+extern uint8_t wakeUpReason;
+extern int8_t  temperature;
+extern uint16_t  batteryVoltage;
+extern bool  lowBattery;
+extern uint8_t capabilities;
 
 
 #endif   // _MAIN_H_

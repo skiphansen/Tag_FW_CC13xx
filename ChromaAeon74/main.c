@@ -38,6 +38,7 @@
 #include <ti/display/Display.h>
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/UART2.h>
+#include <ti/drivers/dpl/ClockP.h>
 
 /* Driver configuration */
 #include "ti/drivers/gpio/GPIOCC26XX.h"
@@ -47,13 +48,22 @@
 #include "main.h"
 #include "img.h"
 #include "board.h"
+#include "radio.h"
+#include "logging.h"
+
+uint8_t wakeUpReason;
+int8_t  temperature;
+uint16_t  batteryVoltage;
+bool  lowBattery;
+uint8_t capabilities;
 
 uint8_t gTempBuf[TEMP_BUF_SIZE];
 
 NVS_Handle gNvs;
-uint8_t mSelfMac[8];
 
 void InitSN(void);
+uint8_t detectAP(const uint8_t channel);
+uint8_t channelSelect(uint8_t rounds);
 
 void *mainThread(void *arg0)
 {
@@ -81,6 +91,30 @@ void *mainThread(void *arg0)
     NvrTest();
     EpdTest();
     WriteEpdImage();
+    if(radioInit()) {
+       LOG("radioInit failed\n");
+    }
+    radioSetChannel(203);
+#if 0
+    while(true) {
+       LOG("Sleep 1 second\n");
+       WaitMs(1000);
+       LOG("Sending ping\n");
+       void sendPing(void);
+       sendPing();
+    }
+
+    while(true) {
+       LOG("Sleep 1 second\n");
+       WaitMs(1000);
+       LOG("detectAP returned %d\n",detectAP(203));
+    }
+#endif
+    while(true) {
+       LOG("Sleep 1 second\n");
+//       WaitMs(1000);
+       LOG("channelSelect returned %d\n",channelSelect(1));
+    }
 
     NVS_close(gNvs);
 
@@ -133,4 +167,60 @@ void InitSN()
    DUMP_HEX(mSelfMac,sizeof(mSelfMac));
 }
 
+
+// Return 0 if no APs are found
+// 
+// Initally we search for APs on both bands once we have found
+// one we know what band to search and only search that band to
+// avoid (further) out of band operation.
+uint8_t channelSelect(uint8_t rounds) 
+{
+   const uint8_t ChannelList[] = {
+      200,100,201,101,202,102,203,103,204,104,205,105
+   };
+   int8_t BestRssi = -128;
+   uint8_t BestChannel = 0;
+   uint8_t i;
+
+   while(rounds-- > 0) {
+      for(i = 0; i < sizeof(ChannelList); i++) {
+         if(gSubGhzBand == BAND_915 && ChannelList[i] < 200) {
+         // Using 915 band and this channel is in 868, skip it
+         }
+         else if(gSubGhzBand == BAND_868 && ChannelList[i] >= 200) {
+         // Using 868 band and this channel is in 915, skip it
+         }
+         else {
+            if(radioSetChannel(ChannelList[i])) {
+               break;
+            }
+            if(detectAP(ChannelList[i])) {
+               LOG("Chan %d RSSI %d\n",ChannelList[i],mLastRSSI);
+               if(BestRssi < mLastRSSI) {
+                  BestRssi = mLastRSSI;
+                  BestChannel = ChannelList[i];
+               }
+            }
+         }
+      }
+   }
+
+   if(BestChannel) {
+      LOG("Using ch %d\n",BestChannel);
+      if(BestChannel >= 200) {
+         gSubGhzBand = BAND_915;
+      }
+      else {
+         gSubGhzBand = BAND_868;
+      }
+      if(gChannel != BestChannel) {
+         gChannel = BestChannel;
+      // TODO: save gChannel in flash
+      }
+   }
+   else {
+      LOG("No AP found\n");
+   }
+   return BestChannel;
+}
 

@@ -9,6 +9,8 @@
 /**
  * Import the modules used in this configuration.
  */
+const custom   = scripting.addModule("/ti/devices/radioconfig/custom");
+const rfdesign = scripting.addModule("/ti/devices/radioconfig/rfdesign");
 const Board  = scripting.addModule("/ti/drivers/Board");
 const GPIO   = scripting.addModule("/ti/drivers/GPIO", {}, false);
 const GPIO1  = GPIO.addInstance();
@@ -23,7 +25,7 @@ const SPI    = scripting.addModule("/ti/drivers/SPI", {}, false);
 const SPI1   = SPI.addInstance();
 const UART2  = scripting.addModule("/ti/drivers/UART2", {}, false);
 const UART21 = UART2.addInstance();
-
+const RF       = scripting.addModule("/ti/drivers/RF");
 /**
  * Write custom configuration values to the imported modules.
  */
@@ -67,6 +69,16 @@ UART21.uart.rxPin.$assign = "DIO_8";
 const CCFG              = scripting.addModule("/ti/devices/CCFG", {}, false);
 CCFG.ccfgTemplate.$name = "ti_devices_CCFG_CCFGCC26XXTemplate0";
 
+custom.prop8                                       = ["custom868"];
+custom.radioConfigcustom868.$name                  = "ti_devices_radioconfig_settings_prop0";
+custom.radioConfigcustom868.symbolRate             = 250.000;
+custom.radioConfigcustom868.txPower                = "10";
+custom.radioConfigcustom868.whitening              = "CC1101/CC2500 compatible";
+custom.radioConfigcustom868.syncWord               = 0xD391D391;
+custom.radioConfigcustom868.deviation              = 165.0;
+custom.radioConfigcustom868.rxFilterBw             = "621.6";
+custom.radioConfigcustom868.carrierFrequency       = 863.9900;
+custom.radioConfigcustom868.codeExportConfig.$name = "ti_devices_radioconfig_code_export_param0";
 const NVSSPI25XDevice                        = scripting.addModule("/ti/drivers/nvs/NVSSPI25XDevice", {}, false);
 const NVSSPI25XDevice1                       = NVSSPI25XDevice.addInstance({}, false);
 NVSSPI25XDevice1.$name                       = "CONFIG_NVS_SPI_0";

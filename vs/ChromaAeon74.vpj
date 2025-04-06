@@ -132,14 +132,17 @@
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/startup_files/ccfg.c"/>
 			<F N="../ChromaAeon74/epd.c"/>
 			<F N="../ChromaAeon74/img.c"/>
-			<F N="../img_weather.c"/>
+			<F N="../ChromaAeon74/img_weather.c"/>
 			<F N="../ChromaAeon74/logging.c"/>
 			<F N="../ChromaAeon74/main.c"/>
 			<F N="../ChromaAeon74/main_nortos.c"/>
 			<F N="../common/radio.c"/>
+			<F N="../common/RFQueue.c"/>
+			<F N="../common/syncedproto.c"/>
 			<F N="../ChromaAeon74/test_code.c"/>
 			<F N="../ChromaAeon74/Debug/syscfg/ti_devices_config.c"/>
 			<F N="../ChromaAeon74/Debug/syscfg/ti_drivers_config.c"/>
+			<F N="../ChromaAeon74/Debug/syscfg/ti_radio_config.c"/>
 		</Folder>
 		<Folder
 			Name="Header Files"
@@ -148,12 +151,15 @@
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/aon_ioc.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/Board.h"/>
 			<F N="../ChromaAeon74/board.h"/>
+			<F N="../ChromaAeon74/board.h"/>
+			<F N="../common/cc13xx.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dpl/ClockP.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/cpu.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/ddi.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/debug.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/DeviceFamily.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/display/Display.h"/>
+			<F N="../common/eeprom.h"/>
 			<F N="../ChromaAeon74/epd.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/GPIO.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/gpio.h"/>
@@ -192,25 +198,42 @@
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/utils/List.h"/>
 			<F N="../common/logging.h"/>
 			<F N="../ChromaAeon74/main.h"/>
+			<F N="../ChromaAeon74/main.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/kernel/nortos/NoRTOS.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/NVS.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/nvs/NVSSPI25X.h"/>
+			<F N="../shared/oepl-definitions.h"/>
+			<F N="../shared/oepl-proto.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/osc.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/Power.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/power/PowerCC26X2.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/power/PowerCC26XX.h"/>
+			<F N="../common/powermgt.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/prcm.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/pwr_ctrl.h"/>
 			<F N="../common/radio.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/rf/RF.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_ble_cmd.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_common_cmd.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_data_entry.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_ieee_cmd.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_mailbox.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/rf_patches/rf_patch_cpe_prop.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_prop_cmd.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_prop_mailbox.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/rf/RFCC26X2.h"/>
+			<F N="../common/RFQueue.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/utils/RingBuf.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rom.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dpl/SemaphoreP.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/SPI.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/spi/SPICC26X2DMA.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dpl/SwiP.h"/>
+			<F N="../common/syncedproto.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/sys_ctrl.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/Temperature.h"/>
 			<F N="../ChromaAeon74/Debug/syscfg/ti_drivers_config.h"/>
+			<F N="../ChromaAeon74/Debug/syscfg/ti_radio_config.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/kernel/nortos/posix/sys/types.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/UART2.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/uart2/UART2CC26X2.h"/>
@@ -223,6 +246,8 @@
 			Name="Other Files"
 			Filters="">
 			<F N="../ChromaAeon74/cc13x1_cc26x1_nortos.cmd"/>
+			<F N="../ChromaAeon74/ChromaAeon74.syscfg"/>
+			<F N="../ChromaAeon74/update_vpj.sh"/>
 		</Folder>
 	</Files>
 	<Macro>
