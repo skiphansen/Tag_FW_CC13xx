@@ -16,6 +16,11 @@
 #include "main.h"
 #include "logging.h"
 
+// from https://e2e.ti.com/support/wireless-connectivity/zigbee-thread-group/zigbee-and-thread/f/zigbee-thread-forum/992257/cc2652p-questions-about-rssi-and-linkquality-relationship
+#define MAC_SPEC_ED_MAX       255
+#define ED_RF_POWER_MIN_DBM   -90
+#define ED_RF_POWER_MAX_DBM   -5
+
 #define RX_TIMEOUT          (uint32_t)(1000000)
 #define NUM_DATA_ENTRIES    2
 
@@ -71,7 +76,9 @@ uint8_t gSubGhzBand;
 static RF_Handle gRF;
 static RF_Object gRfObject;
 
+uint8_t mLastLqi;
 int8_t  mLastRSSI;
+
 
 // Most of the time the tag sends a single packet and receives a single
 // packet in response.  
@@ -140,8 +147,12 @@ uint8_t *commsRxUnencrypted(uint32_t Wait4Ms)
    }
 
    if(gRxPacketLen ) {
+   // from https://e2e.ti.com/support/wireless-connectivity/zigbee-thread-group/zigbee-and-thread/f/zigbee-thread-forum/992257/cc2652p-questions-about-rssi-and-linkquality-relationship
       mLastRSSI = gRxStats.lastRssi;
-      LOG("Received %d byte packet, Rssi %d:\n",gRxPacketLen,mLastRSSI);
+      mLastLqi = (MAC_SPEC_ED_MAX * (mLastRSSI - ED_RF_POWER_MIN_DBM)) 
+                  / (ED_RF_POWER_MAX_DBM - ED_RF_POWER_MIN_DBM);
+      LOG("Received %d byte packet, LQI %d, Rssi %d:\n",
+          gRxPacketLen,mLastLqi,mLastRSSI);
       pRet = &gRxDataQueue[0].pData[1];
       DUMP_HEX(pRet,gRxPacketLen);
    }
