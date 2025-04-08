@@ -4,11 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-void eepromRead(uint32_t addr, uint8_t  *dst, uint32_t len) ;
-
-bool eepromWrite(uint32_t addr, uint8_t  *src, uint32_t len) ;
-
-bool eepromErase(uint32_t addr, uint32_t len) ;
+bool eepromRead(uint32_t addr,void *dst,uint32_t len);
+bool eepromWrite(uint32_t addr,void *src, uint32_t len);
+bool eepromErase(uint32_t addr, uint32_t len);
 
 uint32_t eepromGetSize(void);
 

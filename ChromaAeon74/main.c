@@ -49,12 +49,19 @@
 #include "img.h"
 #include "board.h"
 #include "radio.h"
+#include "syncedproto.h"
+#include "oepl-proto.h"
+#include "oepl-definitions.h"
+#include "powermgt.h"
+#include "drawing.h"
 #include "logging.h"
 
-uint8_t wakeUpReason;
+uint8_t wakeUpReason = WAKEUP_REASON_FIRSTBOOT;
 int8_t  temperature;
 uint16_t  batteryVoltage;
 bool  lowBattery;
+bool noApShown;
+
 uint8_t capabilities;
 
 uint8_t gTempBuf[TEMP_BUF_SIZE];
@@ -64,6 +71,7 @@ NVS_Handle gNvs;
 void InitSN(void);
 uint8_t detectAP(const uint8_t channel);
 uint8_t channelSelect(uint8_t rounds);
+bool eepromInit(void);
 
 void *mainThread(void *arg0)
 {
@@ -71,54 +79,151 @@ void *mainThread(void *arg0)
    LOG("ChromaAeon74 compiled " __DATE__ " " __TIME__ "\n");
 
    InitSN();
-
-  // Sets up the NVS
-    NVS_Params nvsParams;
-    NVS_Attrs regionAttrs;
-
-    NVS_init();
-    NVS_Params_init(&nvsParams);
-
-    gNvs = NVS_open(CONFIG_NVS_FLASH, &nvsParams);
-    if (gNvs == NULL)
-    {
-        LOG("NVS_open() failed\n");
-        return (NULL);
-    }
+   NVS_init();
+   eepromInit();
 
 // Run any test code that is enabled
-    NvrDump();
-    NvrTest();
-    EpdTest();
-    WriteEpdImage();
-    if(radioInit()) {
-       LOG("radioInit failed\n");
-    }
-    radioSetChannel(203);
+   NvrDump();
+   NvrTest();
+   EpdTest();
+   WriteEpdImage();
+   if(radioInit()) {
+      LOG("radioInit failed\n");
+   }
+   NVS_close(gNvs);
+   gNvs = NULL;
+
+   wdt10s();
 #if 0
-    while(true) {
-       LOG("Sleep 1 second\n");
-       WaitMs(1000);
-       LOG("Sending ping\n");
-       void sendPing(void);
-       sendPing();
-    }
+   batteryVoltage = get_battery_mv();
 
-    while(true) {
-       LOG("Sleep 1 second\n");
-       WaitMs(1000);
-       LOG("detectAP returned %d\n",detectAP(203));
-    }
+   LOG("Battery mv: %d Millis: %d\n", batteryVoltage, getMillis());
 #endif
-    while(true) {
-       LOG("Sleep 1 second\n");
-//       WaitMs(1000);
-       LOG("channelSelect returned %d\n",channelSelect(1));
-    }
 
-    NVS_close(gNvs);
+   initializeProto();
 
-    return (NULL);
+   currentChannel = channelSelect(1);
+
+   if(currentChannel) {
+      LOG("AP Found\n");
+#if 0
+      epd_display("AP Found", batteryVoltage, ownMacString, 1);
+      initPowerSaving(INTERVAL_BASE);
+#endif
+      doSleep(5000UL);
+   }
+   else {
+      LOG("No AP found\n");
+#if 0
+      epd_display("No AP Found", batteryVoltage, ownMacString, 1);
+      initPowerSaving(INTERVAL_AT_MAX_ATTEMPTS);
+#endif
+      noApShown = true;
+      doSleep(120000UL);
+   }
+
+   while(1) {
+      batteryVoltage = get_battery_mv();
+      uint32_t before = getMillis();
+      LOG("Battery mv: %d Millis before: %d Uptime: %d\n", batteryVoltage, before, (getMillis() / 1000) / 60);
+      wdt10s();
+      if(currentChannel) {
+         struct AvailDataInfo *avail;
+         avail = getAvailDataInfo();
+      // avail = getShortAvailDataInfo();
+         addAverageValue();
+
+         if(avail == NULL) {
+            LOG("No data\n");
+            nextCheckInFromAP = 0; // let the power-saving algorithm determine the next sleep period
+         }
+         else {
+            nextCheckInFromAP = avail->nextCheckIn;
+         // got some data from the AP!
+            if(avail->dataType != DATATYPE_NOUPDATE) {
+               LOG("Got data transfer\n");
+            // data transfer
+               if(processAvailDataInfo(avail)) {
+               // succesful transfer, next wake time is determined by the NextCheckin;
+               }
+               else {
+               // failed transfer, let the algorithm determine next sleep interval (not the AP)
+                  nextCheckInFromAP = 0;
+               }
+            }
+            else {
+               LOG("No data transfer\n");
+               wakeUpReason = WAKEUP_REASON_TIMED; // Only one successfully AP communication we can have timed wakeups
+                                           // no data transfer, just sleep.
+            }
+         }
+
+         uint16_t nextCheckin = getNextSleep();
+         longDataReqCounter += nextCheckin;
+         if(nextCheckin == INTERVAL_AT_MAX_ATTEMPTS) {
+         // disconnected, obviously...
+            currentChannel = 0;
+         }
+
+         doSleep(40 * 1000UL);
+          /*// if the AP told us to sleep for a specific period, do so.
+          if (nextCheckInFromAP)
+          {
+             doSleep(nextCheckInFromAP * 60000UL);
+          }
+          else
+          {
+             doSleep(getNextSleep() * 1000UL);
+          }*/
+      }
+      else {
+      // We sacrifice 10ms here to show a basic LED status as the scan itself takes more than a second
+         WaitMs(10);
+         currentChannel = channelSelect(1);
+
+         if(!currentChannel) {
+            wdt60s();
+            if(!noApShown) {
+               noApShown = true;
+               if(curImgSlot != 0xFF) {
+                  drawOnOffline(0);
+                  drawImageFromEeprom(curImgSlot);
+                  drawOnOffline(1);
+               }
+               else {
+#if 0
+                  epd_display("No AP", batteryVoltage, ownMacString, 1);
+#endif
+               }
+            }
+         }
+      // did we find a working channel?
+         if(currentChannel) {
+         // now associated!
+            noApShown = false;
+            LOG("AP Found\n");
+            if(curImgSlot != 0xFF) {
+               drawOnOffline(1);
+               drawImageFromEeprom(curImgSlot);
+            }
+            else {
+#if 0
+               epd_display("AP Found", batteryVoltage, ownMacString, 1);
+#endif
+            }
+            scanAttempts = 0;
+            wakeUpReason = WAKEUP_REASON_NETWORK_SCAN;
+            initPowerSaving(INTERVAL_BASE);
+            doSleep(40 * 1000UL);
+         }
+         else {
+         // still not associated
+            doSleep(15 * 60 * 1000UL);
+         }
+      }
+   }
+
+   return(NULL);
 }
 
 void InitSN()
@@ -222,5 +327,134 @@ uint8_t channelSelect(uint8_t rounds)
       LOG("No AP found\n");
    }
    return BestChannel;
+}
+
+
+void drawOnOffline(uint8_t state)
+{
+   LOG("State %d\n",state);
+}
+
+void drawImageAtAddress(uint32_t addr, uint8_t lut)
+{
+   LOG("Adr 0x%x lut %d\n",addr,lut);
+}
+
+bool eepromInit()
+{
+   NVS_Params nvsParams;
+   bool bRet = false;   // Assume the best
+
+   if(gNvs == NULL) {
+      NVS_Params_init(&nvsParams);
+
+      gNvs = NVS_open(CONFIG_NVS_FLASH, &nvsParams);
+      if(gNvs == NULL) {
+         LOG("NVS_open() failed\n");
+         bRet = true;
+      }
+   }
+   return bRet;
+}
+
+uint32_t eepromGetSize(void)
+{
+   return EEPROM_SIZE;
+}
+
+bool eepromRead(uint32_t addr,void *pDst,uint32_t len)
+{
+   int_fast16_t Err;
+   bool bRet = true; // assume the worse
+
+   LOG("read 0x%x Len: %d\n", addr, len);
+   do {
+      if((addr + len) > EEPROM_SIZE) {
+         ELOG("Invalid addr 0x%x\n",addr);
+         break;
+      }
+      if(gNvs == NULL && eepromInit()) {
+         break;
+      }
+      Err = NVS_read(gNvs,addr,pDst,len);
+      LOG("NVS_read returned %d\n",Err);
+      if(Err != NVS_STATUS_SUCCESS) {
+         LOG("NVS_read failed %d\n",Err);
+         break;
+      }
+      bRet = false;
+   } while(false);
+
+   return bRet;
+}
+
+bool eepromWrite(uint32_t addr,void *pSrc,uint32_t len)
+{
+   int_fast16_t Err;
+   bool bRet = true; // assume the worse
+
+   LOG("write 0x%x Len: %d\n", addr, len);
+   do {
+      if((addr + len) > EEPROM_SIZE) {
+         ELOG("Invalid addr 0x%x\n",addr);
+         break;
+      }
+      if(gNvs == NULL && eepromInit()) {
+         break;
+      }
+      Err = NVS_write(gNvs,addr,pSrc,len,0);
+      if(Err != NVS_STATUS_SUCCESS) {
+         LOG("NVS_write failed %d\n",Err);
+         break;
+      }
+      bRet = false;
+   } while(false);
+
+   return bRet;
+}
+
+bool eepromErase(uint32_t addr,uint32_t len)
+{
+   int_fast16_t Err;
+   int NumSectors = len / EEPROM_ERZ_SECTOR_SZ;
+   bool bRet = true; // assume the worse
+
+   LOG("erase 0x%x Len: %d\n",addr,len);
+   do {
+      if((addr % EEPROM_ERZ_SECTOR_SZ) != 0 ||
+          addr > (EEPROM_SIZE - EEPROM_ERZ_SECTOR_SZ)) 
+      {
+         ELOG("Invalid addr 0x%x\n",addr);
+         break;
+      }
+      if(gNvs == NULL && eepromInit()) {
+         break;
+      }
+
+      if(NumSectors % EEPROM_ERZ_SECTOR_SZ != 0) {
+         NumSectors++;
+      }
+      Err = NVS_erase(gNvs,addr,EEPROM_ERZ_SECTOR_SZ);
+      if(Err != NVS_STATUS_SUCCESS) {
+         LOG("NVS_erase failed %d\n",Err);
+         break;
+      }
+      bRet = false;
+   } while(false);
+
+   return bRet;
+}
+
+uint16_t get_battery_mv()
+{
+   return 3000;
+}
+
+void wdt10s(void)
+{
+}
+
+void wdt60s(void)
+{
 }
 

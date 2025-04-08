@@ -59,6 +59,15 @@
 #define SLIDESHOW_INTERVAL_FAST 15             // interval for 'fast'
 #define SLIDESHOW_INTERVAL_MEDIUM 60  
 #define SLIDESHOW_INTERVAL_SLOW 300  
-#define SLIDESHOW_INTERVAL_GLACIAL 1800  
+#define SLIDESHOW_INTERVAL_GLACIAL 1800
 
+uint32_t getMillis();
+extern void doSleep(uint32_t  t);
+extern void addAverageValue();
+extern uint16_t getNextSleep();
+extern void initPowerSaving(const uint16_t initialValue);
+extern uint16_t  nextCheckInFromAP;
+extern uint8_t  dataReqLastAttempt;
+extern uint8_t  scanAttempts;
+extern uint16_t  longDataReqCounter;
 #endif

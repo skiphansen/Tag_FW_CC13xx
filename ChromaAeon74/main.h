@@ -4,13 +4,16 @@
 #include <ti/drivers/NVS.h>
 
 //#define EPD_TEST
-#define EPD_TEST_BACKGROUND_WHITE
+//#define EPD_TEST_BACKGROUND_WHITE
 
 // #define EPD_CODE
 // #define NVS_DUMP
 // #define NVS_TEST
 // #define NVS_TEST_READBACK_ONLY
 // #define WRITE_EPD_IMAGE
+
+#define DEBUG_MAX_SLEEP    5000
+
 
 #define SERIAL_LOG
 #define DEBUG_LOGGING
@@ -54,6 +57,10 @@ void NvrTest(void);
 #else
 #define NvrTest()
 #endif
+
+uint16_t get_battery_mv();
+void wdt10s(void);
+void wdt60s(void);
 
 
 extern uint8_t wakeUpReason;

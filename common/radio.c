@@ -14,7 +14,15 @@
 #include "cc13xx.h"
 #include "radio.h"
 #include "main.h"
+
+// #define VERBOSE_DEUG_LOGGING
 #include "logging.h"
+
+#ifdef VERBOSE_DEUG_LOGGING
+void LogRF_Event(uint64_t Event);
+#else
+#define LogRF_Event(x)
+#endif
 
 // from https://e2e.ti.com/support/wireless-connectivity/zigbee-thread-group/zigbee-and-thread/f/zigbee-thread-forum/992257/cc2652p-questions-about-rssi-and-linkquality-relationship
 #define MAC_SPEC_ED_MAX       255
@@ -95,7 +103,6 @@ static dataQueue_t gRxQueue;
 static rfc_propRxOutput_t gRxStats;
 
 static void RfCmdCB(RF_Handle h, RF_CmdHandle ch, RF_EventMask e);
-void LogRF_Event(uint64_t Event);
 
 // Try to receive a packet for up to Wait4Ms milliseconds
 // return pointer to data on success
@@ -118,15 +125,8 @@ uint8_t *commsRxUnencrypted(uint32_t Wait4Ms)
    RF_cmdPropRx.pQueue = &gRxQueue;
    RF_cmdPropRx.status = 0;
 
-   LOG("RF_cmdPropRx: \n");
-   DUMP_HEX(&RF_cmdPropRx,sizeof(RF_cmdPropRx));
-
-   LOG("gRxQueue: \n");
-   DUMP_HEX(&gRxQueue,sizeof(gRxQueue));
-
-
    StartTime = RF_getCurrentTime();
-   LOG("start %u\n",StartTime);
+   VLOG("start %u\n",StartTime);
 
    Err = RF_runCmd(gRF,
                    (RF_Op*)&RF_cmdPropRx,RF_PriorityNormal,
@@ -136,14 +136,14 @@ uint8_t *commsRxUnencrypted(uint32_t Wait4Ms)
                    );
 
    EndTime = RF_getCurrentTime();
-   LOG("end %u, terminationReason 0x%x%08x\n",
+   VLOG("end %u, terminationReason 0x%x%08x\n",
        EndTime,
        (uint32_t) (Err >> 16),
        (uint32_t) (Err & 0xffffffff));
 
 
    if(Err < 0) {
-      LOGE("RF_postCmd failed %d\n",Err);
+      ELOG("RF_postCmd failed %d\n",Err);
    }
 
    if(gRxPacketLen ) {
@@ -154,7 +154,7 @@ uint8_t *commsRxUnencrypted(uint32_t Wait4Ms)
       LOG("Received %d byte packet, LQI %d, Rssi %d:\n",
           gRxPacketLen,mLastLqi,mLastRSSI);
       pRet = &gRxDataQueue[0].pData[1];
-      DUMP_HEX(pRet,gRxPacketLen);
+      VDUMP_HEX(pRet,gRxPacketLen);
    }
 
    return pRet;
@@ -174,15 +174,12 @@ bool commsTxUnencrypted(const void  *packetP, uint8_t len)
                       (RF_Op*)&RF_cmdPropTx,RF_PriorityNormal,
                       RfCmdCB,
                       RF_EventRxEntryDone | RF_EventLastCmdDone);
-      LOG("terminationReason 0x%x%08x\n",
+      VLOG("terminationReason 0x%x%08x\n",
           (uint32_t) (Err >> 16),
           (uint32_t) (Err & 0xffffffff));
    }
    uint32_t cmdStatus = ((volatile RF_Op*)&RF_cmdPropTx)->status;
-   if(cmdStatus != 0) {
-      LOG("cmdStatus 0x%x\n",cmdStatus);
-      bRet = true;
-   }
+   VLOG("cmdStatus 0x%x\n",cmdStatus);
    return bRet;
 }
 
@@ -207,7 +204,7 @@ bool radioRxEnable(bool bEnable)
             gRF = NULL;
          }
          else {
-            LOGE("Radio was not enabled\n");
+            ELOG("Radio was not enabled\n");
          }
       }
    } while(false);
@@ -276,7 +273,7 @@ bool radioSetChannel(uint8_t Channel)
          Band = BAND_915;
       }
       else {
-         LOG("%d in an invalid channel",gChannel);
+         ELOG("%d in an invalid channel",gChannel);
          bRet = true;
          break;
       }
@@ -284,8 +281,6 @@ bool radioSetChannel(uint8_t Channel)
       RF_cmdFs.frequency = gSynthValues[Index++];
       RF_cmdFs.fractFreq = gSynthValues[Index];
       RF_cmdPropRadioDivSetup.centerFreq = RF_cmdFs.frequency;
-      LOG("RF_cmdFs.frequency 0x%x RF_cmdFs.fractFreq 0x%x\n",
-          RF_cmdFs.frequency,RF_cmdFs.fractFreq);
 
       if(gRF != NULL) {
          RF_close(gRF);
@@ -299,13 +294,13 @@ bool radioSetChannel(uint8_t Channel)
                     (RF_RadioSetup*)&RF_cmdPropRadioDivSetup,
                     &rfParams);
       if(gRF == NULL) {
-         LOGE("RF_open failed\n");
+         ELOG("RF_open failed\n");
          break;
       }
    // Set the frequency
       Err = RF_postCmd(gRF,(RF_Op*)&RF_cmdFs,RF_PriorityNormal,NULL,0);
       if(Err < 0) {
-         LOGE("RF_postCmd failed %d\n",Err);
+         ELOG("RF_postCmd failed %d\n",Err);
          break;
       }
    } while(false);
@@ -315,14 +310,14 @@ bool radioSetChannel(uint8_t Channel)
 
 static void RfCmdCB(RF_Handle h, RF_CmdHandle ch, RF_EventMask e)
 {
-   LOG("%u RF_EventMask 0x%x%08x\n",clock_time(),
+   VLOG("%u RF_EventMask 0x%x%08x\n",clock_time(),
        (uint32_t) (e >> 16),
        (uint32_t) (e & 0xffffffff));
    LogRF_Event(e);
    if(e & RF_EventRxOk) {
    // Successful RX
       gRxPacketLen = gRxDataQueue[0].pData[0];
-      LOG("%u Received %d byte packet\n",clock_time(),gRxPacketLen);
+      VLOG("%u Received %d byte packet\n",clock_time(),gRxPacketLen);
    }
    else if((e & RF_EventLastCmdDone) && !(e & RF_EventRxEntryDone)) {
    }
@@ -334,7 +329,7 @@ bool commsTxNoCpy(const void  *packetp)
 {
    uint8_t *Bytes = (uint8_t *) packetp;
 
-   LOG("Txlen %d\n",Bytes[0]);
+   VLOG("Txlen %d\n",Bytes[0]);
    return commsTxUnencrypted(&Bytes[1],Bytes[0]);
 }
 
@@ -373,6 +368,7 @@ const char *EventDesc[] = {
    "RF_EventInternalError"         // (1 << 31)
 };
 
+#ifdef VERBOSE_DEUG_LOGGING
 void LogRF_Event(uint64_t Event)
 {
    int i;
@@ -399,3 +395,4 @@ void LogRF_Event(uint64_t Event)
    }
    LOG_RAW("\n");
 }
+#endif
