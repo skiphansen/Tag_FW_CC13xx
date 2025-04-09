@@ -37,6 +37,7 @@ void initPowerSaving(const uint16_t initialValue)
     }
 }
 
+// t == sleep time in milliseconds, 0 means forever
 void doSleep(uint32_t t)
 {
    LOG("Sleep for %u...",t);

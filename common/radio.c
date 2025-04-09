@@ -97,7 +97,7 @@ int8_t  mLastRSSI;
 // rfc_dataEntryGeneral_t gRxDataQueue[BLOCK_MAX_PARTS] __attribute__((aligned(4)));
 rfc_dataEntryPointer_t gRxDataQueue[1] __attribute__((aligned(4)));
 int8_t gRxPacketLen;
-uint8_t gRxBuf[RADIO_MAX_PACKET_LEN + 1];
+uint8_t gRxBuf[RADIO_MAX_PACKET_LEN + 2];
 
 static dataQueue_t gRxQueue;
 static rfc_propRxOutput_t gRxStats;
@@ -117,9 +117,12 @@ uint8_t *commsRxUnencrypted(uint32_t Wait4Ms)
 //   RF_cmdPropRx.startTime = RF_getCurrentTime();
 
    gRxPacketLen = 0;
+   memset(gRxBuf,0xaa,sizeof(gRxBuf));
    gRxQueue.pCurrEntry = (uint8_t *) gRxDataQueue;
    gRxQueue.pLastEntry = gRxQueue.pCurrEntry;
    gRxDataQueue[0].status = DATA_ENTRY_PENDING;       // Pending - starting state
+   gRxDataQueue[0].pData = gRxBuf;
+   gRxDataQueue[0].length = sizeof(gRxBuf);
 
    RF_cmdPropRx.endTime = RF_convertMsToRatTicks(Wait4Ms);
    RF_cmdPropRx.pQueue = &gRxQueue;

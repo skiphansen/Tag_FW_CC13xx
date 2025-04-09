@@ -10,10 +10,17 @@
 #include "drawing.h"
 #include "board.h"
 #include "radio.h"
+
+// #define DEBUGBLOCKS
+
+#ifdef DEBUGBLOCKS
+#define VERBOSE_DEUG_LOGGING
+#endif
+
 #include "logging.h"
 
 // download-stuff
-uint8_t blockXferBuffer[BLOCK_DATA_SIZE];
+uint8_t blockXferBuffer[BLOCK_XFER_BUFFER_SIZE];
 struct blockRequest curBlock = {0};     // used by the block-requester, contains the next request that we'll send
 struct AvailDataInfo curDataInfo = {0}; // last 'AvailDataInfo' we received from the AP
 bool requestPartialBlock = false;       // if we should ask the AP to get this block from the host or not
@@ -41,17 +48,17 @@ static uint8_t outBuffer[128] = {0};
 static uint8_t getPacketType(const void *buffer)
 {
    const struct MacFcs *fcs = buffer;
+   uint8_t type = 0;
+
    if((fcs->frameType == 1) && (fcs->destAddrType == 2) && (fcs->srcAddrType == 3) && (fcs->panIdCompressed == 0)) {
-        // broadcast frame
-      uint8_t type = ((uint8_t *)buffer)[sizeof(struct MacFrameBcast)];
-      return type;
+   // broadcast frame
+      type = ((uint8_t *)buffer)[sizeof(struct MacFrameBcast)];
    }
    else if((fcs->frameType == 1) && (fcs->destAddrType == 3) && (fcs->srcAddrType == 3) && (fcs->panIdCompressed == 1)) {
-        // normal frame
-      uint8_t type = ((uint8_t *)buffer)[sizeof(struct MacFrameNormal)];
-      return type;
+   // normal frame
+      type = ((uint8_t *)buffer)[sizeof(struct MacFrameNormal)];
    }
-   return 0;
+   return type;
 }
 
 static bool pktIsUnicast(const void *buffer)
@@ -61,7 +68,7 @@ static bool pktIsUnicast(const void *buffer)
       return false;
    }
    else if((fcs->frameType == 1) && (fcs->destAddrType == 3) && (fcs->srcAddrType == 3) && (fcs->panIdCompressed == 1)) {
-        // normal frame
+   // normal frame
       return true;
    }
     // unknown type...
@@ -219,44 +226,71 @@ static bool processBlockPart(const struct blockPart *bp)
 {
    uint16_t start = bp->blockPart * BLOCK_PART_DATA_SIZE;
    uint16_t size = BLOCK_PART_DATA_SIZE;
-    // validate if it's okay to copy data
-   if(bp->blockId != curBlock.blockId) {
-        // LOG("got a packet for block %02X\n", bp->blockId);
-      return false;
-   }
-   if(start >= (sizeof(blockXferBuffer) - 1))
-      return false;
-   if(bp->blockPart > BLOCK_MAX_PARTS)
-      return false;
-   if((start + size) > sizeof(blockXferBuffer)) {
-      size = sizeof(blockXferBuffer) - start;
-   }
-   if(checkCRC(bp, sizeof(struct blockPart) + BLOCK_PART_DATA_SIZE)) {
-        //  copy block data to buffer
-      memcpy((void *)(blockXferBuffer + start), (const void *)bp->data, size);
-        // we don't need this block anymore, set bit to 0 so we don't request it again
+
+   bool bRet = false; // Assume the worse
+
+   do {
+   // validate if it's okay to copy data
+      if(bp->blockId != curBlock.blockId) {
+         VLOG("got a packet for block 0x%02X, expected 0x%X\n",
+              bp->blockId,curBlock.blockId);
+         break;
+      }
+      if(start >= (sizeof(blockXferBuffer) - 1)) {
+         VLOG("0x%x >= 0x%x\n",start,sizeof(blockXferBuffer) - 1);
+         break;
+      }
+      if(bp->blockPart > BLOCK_MAX_PARTS) {
+         VLOG("bp->blockPart (%d) > BLOCK_MAX_PARTS\n",bp->blockPart);
+         break;
+      }
+      if((start + size) > sizeof(blockXferBuffer)) {
+         VLOG("block len reduced from %d",size);
+         size = sizeof(blockXferBuffer) - start;
+         VLOG_RAW("to %d\n",size);
+      }
+      if(!checkCRC(bp, sizeof(struct blockPart) + BLOCK_PART_DATA_SIZE)) {
+         ELOG("CRC Failed\n");
+         break;
+      }
+   //  copy block data to buffer
+      memcpy((void *)(blockXferBuffer + start),(const void *)bp->data,size);
+   // we don't need this block anymore, set bit to 0 so we don't request it again
       curBlock.requestedParts[bp->blockPart / 8] &= ~(1 << (bp->blockPart % 8));
-      return true;
-   }
-   else {
-      ELOG("CRC Failed\n");
-      return false;
-   }
+#ifdef VERBOSE_DEUG_LOGGING
+      VLOG("Got blockPart %d",bp->blockPart);
+      if(bp->blockPart == 0) {
+         struct blockData *bd = (struct blockData *) bp->data;
+         VLOG_RAW(" size 0x%x checksum 0x%x\n",bd->size,bd->checksum);
+      }
+      VLOG_RAW("\n");
+#endif
+      bRet = true;
+   } while(false);
+
+   return bRet;
 }
 
 static bool blockRxLoop(const uint32_t timeout)
 {
    bool success = false;
-    // radioRxEnable(true);
-   uint8_t *inBuffer = commsRxUnencrypted(timeout);
-   if(inBuffer != NULL) {
-      if(getPacketType(inBuffer) == PKT_BLOCK_PART) {
-         struct blockPart *bp = (struct blockPart *)(inBuffer + sizeof(struct MacFrameNormal) + 1);
+   uint8_t *inBuffer;
+   struct blockPart *bp;
+   uint8_t PktType;
+
+   while(true) {
+      if((inBuffer = commsRxUnencrypted(timeout)) == NULL) {
+         break;
+      }
+      PktType = getPacketType(inBuffer);
+      if(PktType == PKT_BLOCK_PART) {
+         bp = (struct blockPart *)(inBuffer + sizeof(struct MacFrameNormal) + 1);
          success = processBlockPart(bp);
       }
+      else {
+         VLOG("Ignoring PktType 0x%x\n",PktType);
+      }
    }
-    // radioRxEnable(false);
-    // radioRxFlush();
    return success;
 }
 
@@ -307,10 +341,15 @@ static struct blockRequestAck *performBlockRequest()
       sendBlockRequest();
       inBuffer = commsRxUnencrypted(50);
       if(inBuffer != NULL) {
-         switch(getPacketType(inBuffer)) {
+         uint8_t PktType = getPacketType(inBuffer);
+         switch(PktType) {
             case PKT_BLOCK_REQUEST_ACK:
                if(checkCRC((inBuffer + sizeof(struct MacFrameNormal) + 1), sizeof(struct blockRequestAck))) {
+                  VLOG("Got PKT_BLOCK_REQUEST_ACK\n");
                   pRet = (struct blockRequestAck *)(inBuffer + sizeof(struct MacFrameNormal) + 1);
+               }
+               else {
+                  VLOG("Got PKT_BLOCK_REQUEST_ACK with bad CRC\n");
                }
                break;
 
@@ -318,16 +357,19 @@ static struct blockRequestAck *performBlockRequest()
             // block already started while we were waiting for a get block reply
             // LOG("!");
             // processBlockPart((struct blockPart *)(inBuffer + sizeof(struct MacFrameNormal) + 1));
+               VLOG("Got PKT_BLOCK_PART while we were waiting for a get block reply\n");
                pRet = continueToRX(inBuffer);
                break;
 
             case PKT_CANCEL_XFER:
-               return NULL;
+               VLOG("Got PKT_CANCEL_XFER\n");
+               break;
 
             default:
-               LOG("pkt w/type %02X\n", getPacketType(inBuffer));
+               VLOG("pkt w/type %02X\n", getPacketType(inBuffer));
                break;
          }
+         break;
       }
    }
    return pRet;
@@ -351,6 +393,7 @@ static void sendXferCompletePacket()
    f->fcs.srcAddrType = 3;
    f->pan = APsrcPan;
    f->seq = seq++;
+   VLOG("\n");
    commsTxNoCpy(outBuffer);
 }
 
@@ -360,10 +403,10 @@ static void sendXferComplete()
 
    for(uint8_t c = 0; c < 16; c++) {
       sendXferCompletePacket();
-      uint8_t *inBuffer = commsRxUnencrypted(6);
+      uint8_t *inBuffer = commsRxUnencrypted(130);
       if(inBuffer != NULL) {
          if(getPacketType(inBuffer) == PKT_XFER_COMPLETE_ACK) {
-            LOG("XFC ACK\n");
+            VLOG("XFC ACK\n");
             return;
          }
       }
@@ -375,16 +418,16 @@ static void sendXferComplete()
 static bool validateBlockData()
 {
    struct blockData *bd = (struct blockData *)blockXferBuffer;
-   LOG("expected len = %04X, checksum=%04X\n", bd->size, bd->checksum);
+   VLOG("expected len = 0x%04X, checksum=0x%04X\n",bd->size,bd->checksum);
    if(bd->size > BLOCK_XFER_BUFFER_SIZE - sizeof(struct blockData)) {
-      LOG("Impossible data size, we abort here\n");
+      LOG("Impossible data size, abort!\n");
       return false;
    }
    uint16_t t = 0;
    for(uint16_t c = 0; c < bd->size; c++) {
       t += bd->data[c];
    }
-   LOG("Checked len = %04X, checksum=%04X\n", bd->size, t);
+   VLOG("Checked len = 0x%04X, checksum=0x%04X\n", bd->size, t);
    return bd->checksum == t;
 }
 
@@ -422,18 +465,31 @@ static void eraseImageBlock(const uint8_t c)
 
 static void saveUpdateBlockData(uint8_t blockId)
 {
-   if(!eepromWrite(EEPROM_OTA_START+ (blockId * BLOCK_DATA_SIZE), blockXferBuffer + sizeof(struct blockData), BLOCK_DATA_SIZE))
-      LOG("EEPROM write failed\n");
+   uint32_t addr = EEPROM_OTA_START+ (blockId * BLOCK_DATA_SIZE);
+   void *pSrc = blockXferBuffer + sizeof(struct blockData);
+
+   if(eepromWrite(addr,pSrc,BLOCK_DATA_SIZE)) {
+      ELOG("EEPROM write failed\n");
+   }
+   else {
+      VLOG("block 0x%x saved\n",blockId);
+   }
 }
 
 static void saveImgBlockData(const uint8_t imgSlot, const uint8_t blockId)
 {
    uint32_t length = EEPROM_IMG_EACH - (sizeof(struct EepromImageHeader) + (blockId * BLOCK_DATA_SIZE));
-   if(length > 4096)
-      length = 4096;
+   uint32_t addr = getAddressForSlot(imgSlot) + 
+                   sizeof(struct EepromImageHeader) + 
+                   (blockId * BLOCK_DATA_SIZE);
 
-   if(!eepromWrite(getAddressForSlot(imgSlot) + sizeof(struct EepromImageHeader) + (blockId * BLOCK_DATA_SIZE), blockXferBuffer + sizeof(struct blockData), length))
+   if(length > 4096) {
+      length = 4096;
+   }
+
+   if(eepromWrite(addr,blockXferBuffer + sizeof(struct blockData),length)) {
       LOG("EEPROM write failed\n");
+   }
 }
 
 void drawImageFromEeprom(const uint8_t imgSlot)
@@ -469,18 +525,18 @@ static bool getDataBlock(const uint16_t blockSize)
    blockAttempts = BLOCK_TRANSFER_ATTEMPTS;
    if(blockSize == BLOCK_DATA_SIZE) {
       partsThisBlock = BLOCK_MAX_PARTS;
-      memset(curBlock.requestedParts, 0xFF, BLOCK_REQ_PARTS_BYTES);
+      memset(curBlock.requestedParts,0xFF,BLOCK_REQ_PARTS_BYTES);
    }
    else {
       partsThisBlock = (sizeof(struct blockData) + blockSize) / BLOCK_PART_DATA_SIZE;
-      if((sizeof(struct blockData) + blockSize) % BLOCK_PART_DATA_SIZE)
+      if((sizeof(struct blockData) + blockSize) % BLOCK_PART_DATA_SIZE) {
          partsThisBlock++;
+      }
       memset(curBlock.requestedParts, 0x00, BLOCK_REQ_PARTS_BYTES);
       for(uint8_t c = 0; c < partsThisBlock; c++) {
          curBlock.requestedParts[c / 8] |= (1 << (c % 8));
       }
    }
-
    requestPartialBlock = false; // this forces the AP to request the block data from the host
 
    while(blockAttempts--) {
@@ -491,24 +547,26 @@ static bool getDataBlock(const uint16_t blockSize)
       LOG("REQ %d[", curBlock.blockId);
       for(uint8_t c = 0; c < BLOCK_MAX_PARTS; c++) {
          if((c != 0) && (c % 8 == 0))
-            LOG("][");
+            LOG_RAW("][");
          if(curBlock.requestedParts[c / 8] & (1 << (c % 8))) {
-            LOG("R");
+            LOG_RAW("R");
          }
          else {
-            LOG("_");
+            LOG_RAW("_");
          }
       }
-      LOG("]\n");
+      LOG_RAW("]\n");
 #endif
       struct blockRequestAck *ack = performBlockRequest();
 
       if(ack == NULL) {
-         LOG("Cancelled request\n");
+         VLOG("Cancelled request\n");
          return false;
       }
-      if(ack->pleaseWaitMs) { // SLEEP - until the AP is ready with the data
-         WaitMs(ack->pleaseWaitMs - 10);
+      VLOG("pleaseWaitMs %d \n",ack->pleaseWaitMs);
+      if(ack->pleaseWaitMs > 10) {
+      // SLEEP - until the AP is ready with the data
+         doSleep(ack->pleaseWaitMs - 10);
       }
       else {
             // immediately start with the reception of the block data
@@ -519,17 +577,17 @@ static bool getDataBlock(const uint16_t blockSize)
       LOG("RX  %d[", curBlock.blockId);
       for(uint8_t c = 0; c < BLOCK_MAX_PARTS; c++) {
          if((c != 0) && (c % 8 == 0))
-            LOG("][");
+            LOG_RAW("][");
          if(curBlock.requestedParts[c / 8] & (1 << (c % 8))) {
-            LOG(".");
+            LOG_RAW(".");
          }
          else {
-            LOG("R");
+            LOG_RAW("R");
          }
       }
-      LOG("]\n");
+      LOG_RAW("]\n");
 #endif
-        // check if we got all the parts we needed, e.g: has the block been completed?
+   // check if we got all the parts we needed, e.g: has the block been completed?
       bool blockComplete = true;
       for(uint8_t c = 0; c < partsThisBlock; c++) {
          if(curBlock.requestedParts[c / 8] & (1 << (c % 8)))
@@ -541,7 +599,7 @@ static bool getDataBlock(const uint16_t blockSize)
          LOG("- COMPLETE\n");
 #endif
          if(validateBlockData()) {
-            LOG("- Validated\n");
+            VLOG("- Validated\n");
                 // block download complete, validated
             return true;
          }
@@ -618,19 +676,15 @@ static bool downloadImageDataToEEPROM(const struct AvailDataInfo *avail)
    else {
    // go to the next image slot
       nextImgSlot++;
-      if(nextImgSlot >= IMAGE_SLOTS)
+      if(nextImgSlot >= IMAGE_SLOTS) {
          nextImgSlot = 0;
+      }
       curImgSlot = nextImgSlot;
       LOG("Saving to image slot %d\n", curImgSlot);
       drawWithLut = avail->dataTypeArgument;
-      uint8_t attempt = 5;
-      while(attempt--) {
-         if(eepromErase(getAddressForSlot(curImgSlot), EEPROM_IMG_EACH))
-            goto eraseSuccess;
+      if(eepromErase(getAddressForSlot(curImgSlot), EEPROM_IMG_EACH)) {
+         doSleep(0);
       }
-   // eepromFail:
-      doSleep(-1);
-      eraseSuccess:
       LOG("new download, writing to slot %d\n", curImgSlot);
 
    // start, or restart the transfer. Copy data from the AvailDataInfo struct, and the struct intself. This forces a new transfer
@@ -683,7 +737,7 @@ static bool downloadImageDataToEEPROM(const struct AvailDataInfo *avail)
 
 bool processAvailDataInfo(struct AvailDataInfo *avail)
 {
-   LOG("dataType: %d\n", avail->dataType);
+   LOG("dataType: 0x%x\n", avail->dataType);
    switch(avail->dataType) {
       case DATATYPE_IMG_BMP:
       case DATATYPE_IMG_DIFF:
@@ -699,10 +753,10 @@ bool processAvailDataInfo(struct AvailDataInfo *avail)
             return true;
          }
 
-            // check if we've seen this version before
+      // check if we've seen this version before
          curImgSlot = findSlot((uint8_t *)&(avail->dataVer));
          if(curImgSlot != 0xFF) {
-                // found a (complete)valid image slot for this version
+         // found a (complete)valid image slot for this version
             sendXferComplete();
 
             LOG("already seen, drawing from eeprom slot %d\n", curImgSlot);
@@ -718,7 +772,7 @@ bool processAvailDataInfo(struct AvailDataInfo *avail)
             return true;
          }
          else {
-                // not found in cache, prepare to download
+         // not found in cache, prepare to download
             LOG("downloading to imgslot\n");
             drawWithLut = avail->dataTypeArgument;
             if(downloadImageDataToEEPROM(avail)) {
