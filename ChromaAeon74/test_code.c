@@ -107,6 +107,7 @@ void EpdTest()
     LOG("Sleeping epd!\n");
     Epd_Sleep();
     LOG("EOP\n");
+}
 #endif
 
 

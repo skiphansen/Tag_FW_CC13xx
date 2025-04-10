@@ -1,10 +1,36 @@
-#include "epd.h"
-#include "img.h"
 #include <stdint.h>
+#include <string.h>
 #include <unistd.h>
 #include <ti/drivers/GPIO.h>
 #include "ti_drivers_config.h"
+#include "epd.h"
+#include "img.h"
 #include "main.h"
+#include "oepl-proto.h"
+#include "oepl-definitions.h"
+#include "drawing.h"
+#include "eeprom.h"
+
+#define VERBOSE_DEUG_LOGGING
+#include "logging.h"
+
+// BLOCK_XFER_BUFFER_SIZE is about 4k bytes
+// one row of 800 pixels is 100 bytes so we can do 40 rows per pass
+// requiring 12 passes / plane
+
+#define BYTES_PER_PART  4000
+#define LINES_PER_PART  40
+#define TOTAL_PARTS     12
+
+extern uint8_t blockXferBuffer[BLOCK_XFER_BUFFER_SIZE];
+bool g2BitsPerPixel;
+bool gBlackPass;
+bool gDrawFromFlash;
+
+uint16_t gPartY;
+uint16_t gDrawY;
+uint32_t gEEpromAdr;
+
 
 #ifdef EPD_CODE
 
@@ -73,6 +99,7 @@ void Epd_WaitUntilIdle(void) {
 }
 
 // Initialize the e-paper display
+// UC8179C like controller
 void Epd_Init(void) {
     // Power on the display
     Epd_DigitalWrite(PWR_PIN, 0);
@@ -185,6 +212,110 @@ void Epd_DrawPattern(void)
     }
     Epd_TurnOnDisplay();
 }
+
+void DoPass()
+{
+   uint8_t Part;
+   uint16_t i;
+   uint8_t Mask = 0x80;
+   uint8_t Value = 0;
+
+   gPartY = 0;
+   gDrawY = 0;
+
+   VLOG("gEEpromAdr 0x%x\n",gEEpromAdr);
+
+   for(Part = 0; Part < TOTAL_PARTS; Part++) {
+      if(gDrawFromFlash) {
+      // Read 40 lines of pixels
+         if(!gBlackPass && !g2BitsPerPixel) {
+         // Dummy pass
+            memset(blockXferBuffer,0,BYTES_PER_PART);
+         }
+         else {
+            eepromRead(gEEpromAdr,blockXferBuffer,BYTES_PER_PART);
+            // VDUMP_HEX(blockXferBuffer,BYTES_PER_PART);
+            gEEpromAdr += BYTES_PER_PART;
+         }
+         if(gBlackPass) {
+            for(int i = 0; i < BYTES_PER_PART; i++) {
+               Epd_SendData(~blockXferBuffer[i]);
+            }
+         }
+         else {
+            for(int i = 0; i < BYTES_PER_PART; i++) {
+               Epd_SendData(blockXferBuffer[i]);
+            }
+         }
+      }
+#if 0
+      else {
+         xMemSet(blockXferBuffer,0,BYTES_PER_PART);
+         for(i = 0; i < LINES_PER_PART; i++) {
+            gDrawingFunct();
+            gDrawY++;
+         }
+      }
+#endif
+      gPartY += LINES_PER_PART;
+   }
+}
+
+void drawWithSleep(void)
+{
+    Epd_SendCommand(0x12);
+    Epd_DelayMs(100);
+    Epd_WaitUntilIdle();
+}
+
+void drawImageAtAddress(uint32_t addr, uint8_t lut)
+{
+   struct EepromImageHeader Hdr;
+
+   gEEpromAdr = addr;
+   LOG("Adr 0x%x lut %d\n",addr,lut);
+   do {
+      if(eepromRead(gEEpromAdr,&Hdr,sizeof(Hdr))) {
+         break;
+      }
+      gEEpromAdr += sizeof(Hdr);
+
+      if(Hdr.validMarker != EEPROM_IMG_VALID) {
+         ELOG("Hdr is not valid\n");
+         DUMP_HEX(&Hdr,sizeof(Hdr));
+         break;
+      }
+
+      if(Hdr.dataType == DATATYPE_IMG_RAW_1BPP) {
+         VLOG("DATATYPE_IMG_RAW_1BPP\n");
+         g2BitsPerPixel = false;
+      }
+      else if(Hdr.dataType == DATATYPE_IMG_RAW_2BPP) {
+         VLOG("DATATYPE_IMG_RAW_2BPP\n");
+         g2BitsPerPixel = true;
+      }
+      else {
+         ELOG("dataType 0x%x not supported\n",Hdr.dataType);
+         break;
+      }
+      VLOG("size %u\n",Hdr.size);
+
+      LOG("Drawing starting @ %u...\n",clock_time());
+      Epd_Init();
+      gDrawFromFlash = true;
+      gBlackPass = true;
+      Epd_SendCommand(0x10);
+      DoPass();
+      gBlackPass = false;
+      Epd_SendCommand(0x13);
+      DoPass();
+      eepromPowerDown();
+      drawWithSleep();
+      Epd_Sleep();
+      LOG("Drawing finished @ %u\n",clock_time());
+   } while(false);
+}
+
 #endif   // EPD_CODE
 
 #ifdef EPD_TEST

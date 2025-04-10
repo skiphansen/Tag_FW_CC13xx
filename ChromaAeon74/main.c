@@ -92,9 +92,10 @@ void *mainThread(void *arg0)
    }
    NVS_close(gNvs);
    gNvs = NULL;
-
-   wdt10s();
 #if 0
+   drawImageAtAddress(0x4c000,0);
+   wdt10s();
+   while(true);
    batteryVoltage = get_battery_mv();
 
    LOG("Battery mv: %d Millis: %d\n", batteryVoltage, getMillis());
@@ -335,11 +336,6 @@ void drawOnOffline(uint8_t state)
    LOG("State %d\n",state);
 }
 
-void drawImageAtAddress(uint32_t addr, uint8_t lut)
-{
-   LOG("Adr 0x%x lut %d\n",addr,lut);
-}
-
 bool eepromInit()
 {
    NVS_Params nvsParams;
@@ -377,7 +373,6 @@ bool eepromRead(uint32_t addr,void *pDst,uint32_t len)
          break;
       }
       Err = NVS_read(gNvs,addr,pDst,len);
-      LOG("NVS_read returned %d\n",Err);
       if(Err != NVS_STATUS_SUCCESS) {
          LOG("NVS_read failed %d\n",Err);
          break;
@@ -434,7 +429,8 @@ bool eepromErase(uint32_t addr,uint32_t len)
       if(NumSectors % EEPROM_ERZ_SECTOR_SZ != 0) {
          NumSectors++;
       }
-      Err = NVS_erase(gNvs,addr,EEPROM_ERZ_SECTOR_SZ);
+      LOG("Erasing %d sectors\n",NumSectors);
+      Err = NVS_erase(gNvs,addr,NumSectors * EEPROM_ERZ_SECTOR_SZ);
       if(Err != NVS_STATUS_SUCCESS) {
          LOG("NVS_erase failed %d\n",Err);
          break;
@@ -444,6 +440,17 @@ bool eepromErase(uint32_t addr,uint32_t len)
 
    return bRet;
 }
+
+bool eepromPowerDown()
+{
+   if(gNvs != NULL) {
+      NVS_close(gNvs);
+      gNvs = NULL;
+   }
+
+   return false;
+}
+
 
 uint16_t get_battery_mv()
 {

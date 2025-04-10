@@ -7,6 +7,7 @@
 bool eepromRead(uint32_t addr,void *dst,uint32_t len);
 bool eepromWrite(uint32_t addr,void *src, uint32_t len);
 bool eepromErase(uint32_t addr, uint32_t len);
+bool eepromPowerDown(void);
 
 uint32_t eepromGetSize(void);
 
