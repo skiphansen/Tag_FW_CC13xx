@@ -18,7 +18,7 @@ See the OEPL [Wiki](https://github.com/OpenEPaperLink/OpenEPaperLink/wiki/Chroma
 
 This port is currently able to download screen updates from the AP and display
 them.  It is **NOT** ready for prime time nor is it advisable to run the
-tag from batteries quite yet.
+tag from batteries yet.  Currently the "sleep" current consumption is **4 ma**.
 
 To Do List:
 
