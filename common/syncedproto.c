@@ -174,6 +174,7 @@ static void sendAvailDataReq()
    availreq->temperature = temperature;
    availreq->batteryMv = batteryVoltage;
    availreq->capabilities = capabilities;
+   availreq->tagSoftwareVersion = FW_VERSION;
    addCRC(availreq, sizeof(struct AvailDataReq));
    commsTxNoCpy(outBuffer);
 }
