@@ -15,8 +15,8 @@
 #define EEPROM_OTA_START            (0x94000)
 #define EEPROM_OTA_LEN              (352*1024)
 
-#define EEPROM_IMG_START            (0x4000)
-#define EEPROM_IMG_EACH             (0x24000)
+#define EEPROM_IMG_START            (0x10000)
+#define EEPROM_IMG_EACH             (0x20000)
 #define EEPROM_IMG_SECTORS          (EEPROM_IMG_EACH / EEPROM_ERZ_SECTOR_SZ)
 #define IMAGE_SLOTS                 ((EEPROM_SIZE - EEPROM_IMG_START)/EEPROM_IMG_EACH)
 
