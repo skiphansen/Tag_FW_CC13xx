@@ -811,8 +811,6 @@ bool processAvailDataInfo(struct AvailDataInfo *avail)
    return true;
 }
 
-uint32_t address = 0;
-
 void write_ota_firmware_to_flash(void)
 {
    LOG("Called\n");

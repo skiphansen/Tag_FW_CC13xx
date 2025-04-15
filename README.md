@@ -23,7 +23,7 @@ tag from batteries yet.  Currently the "sleep" current consumption is **4 ma**.
 To Do List:
 
 - [X] Add gzip support for image downloads
-- [ ] Add support for battery voltage and temperature measurements and reporting.
+- [X] Add support for battery voltage and temperature measurements and reporting.
 - [ ] Add UI support (initial startup info screens and AP lost screen)
 - [ ] Add status icons to normal displays (AP lost and low battery)
 - [ ] Add support for static screens

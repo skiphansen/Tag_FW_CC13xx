@@ -39,6 +39,7 @@
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/UART2.h>
 #include <ti/drivers/dpl/ClockP.h>
+#include DeviceFamily_constructPath(driverlib/aon_batmon.h)
 
 /* Driver configuration */
 #include "ti/drivers/gpio/GPIOCC26XX.h"
@@ -72,11 +73,12 @@ void InitSN(void);
 uint8_t detectAP(const uint8_t channel);
 uint8_t channelSelect(uint8_t rounds);
 bool eepromInit(void);
+void GetTempAndBattV(void);
 
 void *mainThread(void *arg0)
 {
    InitLogging();
-   LOG("ChromaAeon74 compiled " __DATE__ " " __TIME__ "\n");
+   LOG("ChromaAeon74 Ver %d compiled " __DATE__ " " __TIME__ "\n",FW_VERSION);
 
    InitSN();
    NVS_init();
@@ -92,17 +94,14 @@ void *mainThread(void *arg0)
    }
    NVS_close(gNvs);
    gNvs = NULL;
+
 #if 0
    drawImageAtAddress(0x90000,0);
    wdt10s();
    while(true);
-   batteryVoltage = get_battery_mv();
-
-   LOG("Battery mv: %d Millis: %d\n", batteryVoltage, getMillis());
 #endif
 
    initializeProto();
-
    currentChannel = channelSelect(1);
 
    if(currentChannel) {
@@ -124,10 +123,8 @@ void *mainThread(void *arg0)
    }
 
    while(1) {
-      batteryVoltage = get_battery_mv();
-      uint32_t before = getMillis();
-      LOG("Battery mv: %d Millis before: %d Uptime: %d\n", batteryVoltage, before, (getMillis() / 1000) / 60);
       wdt10s();
+      GetTempAndBattV();
       if(currentChannel) {
          struct AvailDataInfo *avail;
          avail = getAvailDataInfo();
@@ -465,3 +462,23 @@ void wdt60s(void)
 {
 }
 
+
+void GetTempAndBattV(void)
+{
+   AONBatMonEnable();
+   VLOG("Waiting for New Temp MeasureReady...");
+   while(!AONBatMonNewTempMeasureReady())
+      ;
+   VLOG("\n");
+   temperature = (int8_t) AONBatMonTemperatureGetDegC();
+   VLOG("Temp %d C\n",temperature);
+   VLOG("Waiting for New Battery MeasureReady...");
+   while(!AONBatMonNewBatteryMeasureReady())
+      ;
+   VLOG("\n");
+   uint32_t Temp = AONBatMonBatteryVoltageGet();
+   batteryVoltage = (Temp & 0xff) * 1000 / 256;
+   batteryVoltage += (Temp >> 8) * 1000;
+   VLOG("BatV %d.%03d\n",batteryVoltage / 1000, batteryVoltage % 1000);
+   AONBatMonDisable();
+}

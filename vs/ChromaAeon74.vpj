@@ -180,6 +180,7 @@
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/kernel/nortos/posix/sys/types.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/kernel/nortos/posix/unistd.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/adi.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/aon_batmon.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/aon_ioc.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/cpu.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/ddi.h"/>
@@ -204,6 +205,7 @@
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_adi_2_refsys.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_adi_3_refsys.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_adi.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_aon_batmon.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_aon_ioc.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_aon_pmctl.h"/>
 			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_aon_rtc.h"/>
