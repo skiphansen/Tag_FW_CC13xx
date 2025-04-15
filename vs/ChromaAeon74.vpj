@@ -1,62 +1,274 @@
-<Project Version="10.0" VendorName="SlickEdit" TemplateName="Other C/C++" WorkingDir="../ChromaAeon74">
-	<Config Name="Debug" Type="cpp" DebugCallbackName="gdb" OutputFile="%bdCustom_PriceTag_AccesPoint" CompilerConfigName="Latest Version">
+<Project
+	Version="10.0"
+	VendorName="SlickEdit"
+	TemplateName="Other C/C++"
+	WorkingDir="../ChromaAeon74">
+	<Config
+		Name="Debug"
+		Type="cpp"
+		DebugCallbackName="gdb"
+		OutputFile="%bdCustom_PriceTag_AccesPoint"
+		CompilerConfigName="Latest Version">
 		<Menu>
-			<Target Name="Compile" MenuCaption="&amp;Compile" CaptureOutputWith="ProcessBuffer" OutputExts="*.o" SaveOption="SaveCurrent" RunFromDir="%rw">
-				<Exec CmdLine="cc -c -g %i %defd -o &quot;%bd%n.o&quot; &quot;%f&quot;" />
+			<Target
+				Name="Compile"
+				MenuCaption="&amp;Compile"
+				CaptureOutputWith="ProcessBuffer"
+				OutputExts="*.o"
+				SaveOption="SaveCurrent"
+				RunFromDir="%rw">
+				<Exec CmdLine='cc -c -g %i %defd -o "%bd%n.o" "%f"'/>
 			</Target>
-			<Target Name="Link" MenuCaption="&amp;Link">
-				<Exec CmdLine="cc -g -o &quot;%o&quot; %f %libs" />
+			<Target
+				Name="Link"
+				MenuCaption="&amp;Link">
+				<Exec CmdLine='cc -g -o "%o" %f %libs'/>
 			</Target>
-			<Target Name="Build" MenuCaption="&amp;Build" CaptureOutputWith="ProcessBuffer" SaveOption="SaveWorkspaceFiles" RunFromDir="%rw">
-				<Exec CmdLine="&quot;%(VSLICKBIN1)vsbuild&quot; build &quot;%w&quot; &quot;%r&quot;" />
+			<Target
+				Name="Build"
+				MenuCaption="&amp;Build"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveWorkspaceFiles"
+				RunFromDir="%rw">
+				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" build "%w" "%r"'/>
 			</Target>
-			<Target Name="Rebuild" MenuCaption="&amp;Rebuild" CaptureOutputWith="ProcessBuffer" SaveOption="SaveWorkspaceFiles" RunFromDir="%rw">
-				<Exec CmdLine="&quot;%(VSLICKBIN1)vsbuild&quot; rebuild &quot;%w&quot; &quot;%r&quot;" />
+			<Target
+				Name="Rebuild"
+				MenuCaption="&amp;Rebuild"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveWorkspaceFiles"
+				RunFromDir="%rw">
+				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" rebuild "%w" "%r"'/>
 			</Target>
-			<Target Name="Debug" MenuCaption="&amp;Debug" SaveOption="SaveNone" BuildFirst="1" CaptureOutputWith="ProcessBuffer" RunFromDir="%rw">
-				<Exec CmdLine="vsdebugio -prog &quot;%o&quot;" />
+			<Target
+				Name="Debug"
+				MenuCaption="&amp;Debug"
+				SaveOption="SaveNone"
+				BuildFirst="1"
+				CaptureOutputWith="ProcessBuffer"
+				RunFromDir="%rw">
+				<Exec CmdLine='vsdebugio -prog "%o"'/>
 			</Target>
-			<Target Name="Execute" MenuCaption="E&amp;xecute" SaveOption="SaveNone" BuildFirst="1" CaptureOutputWith="ProcessBuffer" RunFromDir="%rw">
-				<Exec CmdLine="&quot;%o&quot;" />
+			<Target
+				Name="Execute"
+				MenuCaption="E&amp;xecute"
+				SaveOption="SaveNone"
+				BuildFirst="1"
+				CaptureOutputWith="ProcessBuffer"
+				RunFromDir="%rw">
+				<Exec CmdLine='"%o"'/>
 			</Target>
 		</Menu>
 	</Config>
-	<Config Name="Release" Type="cpp" DebugCallbackName="gdb" OutputFile="%bdCustom_PriceTag_AccesPoint" CompilerConfigName="Latest Version">
+	<Config
+		Name="Release"
+		Type="cpp"
+		DebugCallbackName="gdb"
+		OutputFile="%bdCustom_PriceTag_AccesPoint"
+		CompilerConfigName="Latest Version">
 		<Menu>
-			<Target Name="Compile" MenuCaption="&amp;Compile" CaptureOutputWith="ProcessBuffer" SaveOption="SaveCurrent" OutputExts="*.o" RunFromDir="%rw">
-				<Exec CmdLine="cc -c -O %i %defd -o &quot;%bd%n.o&quot; &quot;%f&quot;" />
+			<Target
+				Name="Compile"
+				MenuCaption="&amp;Compile"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveCurrent"
+				OutputExts="*.o"
+				RunFromDir="%rw">
+				<Exec CmdLine='cc -c -O %i %defd -o "%bd%n.o" "%f"'/>
 			</Target>
-			<Target Name="Link" MenuCaption="&amp;Link">
-				<Exec CmdLine="cc -O -o &quot;%o&quot; %f %libs" />
+			<Target
+				Name="Link"
+				MenuCaption="&amp;Link">
+				<Exec CmdLine='cc -O -o "%o" %f %libs'/>
 			</Target>
-			<Target Name="Build" MenuCaption="&amp;Build" CaptureOutputWith="ProcessBuffer" SaveOption="SaveWorkspaceFiles" RunFromDir="%rw">
-				<Exec CmdLine="&quot;%(VSLICKBIN1)vsbuild&quot; build &quot;%w&quot; &quot;%r&quot;" />
+			<Target
+				Name="Build"
+				MenuCaption="&amp;Build"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveWorkspaceFiles"
+				RunFromDir="%rw">
+				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" build "%w" "%r"'/>
 			</Target>
-			<Target Name="Rebuild" MenuCaption="&amp;Rebuild" CaptureOutputWith="ProcessBuffer" SaveOption="SaveWorkspaceFiles" RunFromDir="%rw">
-				<Exec CmdLine="&quot;%(VSLICKBIN1)vsbuild&quot; rebuild &quot;%w&quot; &quot;%r&quot;" />
+			<Target
+				Name="Rebuild"
+				MenuCaption="&amp;Rebuild"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveWorkspaceFiles"
+				RunFromDir="%rw">
+				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" rebuild "%w" "%r"'/>
 			</Target>
-			<Target Name="Debug" MenuCaption="&amp;Debug" SaveOption="SaveNone" BuildFirst="1" CaptureOutputWith="ProcessBuffer" RunFromDir="%rw">
-				<Exec CmdLine="vsdebugio -prog &quot;%o&quot;" />
+			<Target
+				Name="Debug"
+				MenuCaption="&amp;Debug"
+				SaveOption="SaveNone"
+				BuildFirst="1"
+				CaptureOutputWith="ProcessBuffer"
+				RunFromDir="%rw">
+				<Exec CmdLine='vsdebugio -prog "%o"'/>
 			</Target>
-			<Target Name="Execute" MenuCaption="E&amp;xecute" SaveOption="SaveNone" BuildFirst="1" CaptureOutputWith="ProcessBuffer" RunFromDir="%rw">
-				<Exec CmdLine="&quot;%o&quot;" />
+			<Target
+				Name="Execute"
+				MenuCaption="E&amp;xecute"
+				SaveOption="SaveNone"
+				BuildFirst="1"
+				CaptureOutputWith="ProcessBuffer"
+				RunFromDir="%rw">
+				<Exec CmdLine='"%o"'/>
 			</Target>
 		</Menu>
 	</Config>
 	<Rules Name="Compile">
-		<Rule InputExts="*.s" OutputExts="*.o" LinkObject="1">
-			<Exec CmdLine="as -o &quot;%bd%n.o&quot; &quot;%f&quot;" />
+		<Rule
+			InputExts="*.s"
+			OutputExts="*.o"
+			LinkObject="1">
+			<Exec CmdLine='as -o "%bd%n.o" "%f"'/>
 		</Rule>
 	</Rules>
 	<Files>
-		<Folder Name="Source Files" Filters="*.c;*.C;*.cc;*.cpp;*.cp;*.cxx;*.c++;*.prg;*.pas;*.dpr;*.asm;*.s;*.bas;*.java;*.cs;*.sc;*.e;*.cob;*.html;*.rc;*.tcl;*.py;*.pl;*.d"><F N="../ChromaAeon74/epd.c" /><F N="../common/powermgt.c" /><F N="../common/radio.c" /><F N="../common/RFQueue.c" /><F N="../common/syncedproto.c" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/startup_files/ccfg.c" /><F N="../ChromaAeon74/img.c" /><F N="../ChromaAeon74/img_weather.c" /><F N="../ChromaAeon74/logging.c" /><F N="../ChromaAeon74/main.c" /><F N="../ChromaAeon74/main_nortos.c" /><F N="../ChromaAeon74/Debug/syscfg/ti_devices_config.c" /><F N="../ChromaAeon74/Debug/syscfg/ti_drivers_config.c" /><F N="../ChromaAeon74/Debug/syscfg/ti_radio_config.c" /><F N="../ChromaAeon74/test_code.c" /></Folder><Folder Name="Header Files" Filters="*.h;*.H;*.hh;*.hpp;*.hxx;*.inc;*.sh;*.cpy;*.if"><F N="../ChromaAeon74/board.h" /><F N="../ChromaAeon74/epd.h" /><F N="../ChromaAeon74/board.h" /><F N="../ChromaAeon74/main.h" /><F N="../common/cc13xx.h" /><F N="../common/drawing.h" /><F N="../common/eeprom.h" /><F N="../common/logging.h" /><F N="../common/powermgt.h" /><F N="../common/radio.h" /><F N="../common/RFQueue.h" /><F N="../common/syncedproto.h" /><F N="../shared/oepl-definitions.h" /><F N="../shared/oepl-proto.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/kernel/nortos/NoRTOS.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/kernel/nortos/posix/sys/types.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/kernel/nortos/posix/unistd.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/adi.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/aon_ioc.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/cpu.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/ddi.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/debug.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/gpio.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/interrupt.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/ioc.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/osc.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/prcm.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/pwr_ctrl.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_ble_cmd.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_common_cmd.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_data_entry.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_ieee_cmd.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_mailbox.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_prop_cmd.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_prop_mailbox.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rom.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/sys_ctrl.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/udma.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/vims.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_adi_2_refsys.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_adi_3_refsys.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_adi.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_aon_ioc.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_aon_pmctl.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_aon_rtc.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_aux_smph.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_ccfg.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_ccfg_simple_struct.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_chip_def.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_cpu_scs.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_ddi_0_osc.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_ddi.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_fcfg1.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_gpio.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_ints.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_ioc.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_memmap_common.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_memmap.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_nvic.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_prcm.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_rfc_pwr.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_sysctl.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_types.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_uart.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_udma.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_vims.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/rf_patches/rf_patch_cpe_prop.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/DeviceFamily.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/display/Display.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/Board.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dma/UDMACC26XX.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dpl/ClockP.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dpl/HwiP.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dpl/SemaphoreP.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dpl/SwiP.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/gpio/GPIOCC26XX.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/GPIO.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/NVS.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/nvs/NVSSPI25X.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/Power.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/power/PowerCC26X2.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/power/PowerCC26XX.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/rf/RFCC26X2.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/rf/RF.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/SPI.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/spi/SPICC26X2DMA.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/Temperature.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/UART2.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/uart2/UART2CC26X2.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/utils/List.h" /><F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/utils/RingBuf.h" /><F N="../ChromaAeon74/img.h" /><F N="../ChromaAeon74/main.h" /><F N="../ChromaAeon74/Debug/syscfg/ti_drivers_config.h" /><F N="../ChromaAeon74/Debug/syscfg/ti_radio_config.h" /></Folder><Folder Name="Other Files" Filters="">
-			<F N="../ChromaAeon74/cc13x1_cc26x1_nortos.cmd" />
-			<F N="../ChromaAeon74/ChromaAeon74.syscfg" />
-			<F N="../ChromaAeon74/update_vpj.sh" />
+		<Folder
+			Name="Source Files"
+			Filters="*.c;*.C;*.cc;*.cpp;*.cp;*.cxx;*.c++;*.prg;*.pas;*.dpr;*.asm;*.s;*.bas;*.java;*.cs;*.sc;*.e;*.cob;*.html;*.rc;*.tcl;*.py;*.pl;*.d">
+			<F N="../ChromaAeon74/epd.c"/>
+			<F N="../common/powermgt.c"/>
+			<F N="../common/radio.c"/>
+			<F N="../common/RFQueue.c"/>
+			<F N="../common/syncedproto.c"/>
+			<F N="../uzlib/src/adler32.c"/>
+			<F N="../uzlib/src/crc32.c"/>
+			<F N="../uzlib/src/defl_static.c"/>
+			<F N="../uzlib/src/genlz77.c"/>
+			<F N="../uzlib/src/tinfgzip.c"/>
+			<F N="../uzlib/src/tinflate.c"/>
+			<F N="../uzlib/src/tinfzlib.c"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/startup_files/ccfg.c"/>
+			<F N="../ChromaAeon74/img.c"/>
+			<F N="../ChromaAeon74/img_weather.c"/>
+			<F N="../ChromaAeon74/logging.c"/>
+			<F N="../ChromaAeon74/main.c"/>
+			<F N="../ChromaAeon74/main_nortos.c"/>
+			<F N="../ChromaAeon74/Debug/syscfg/ti_devices_config.c"/>
+			<F N="../ChromaAeon74/Debug/syscfg/ti_drivers_config.c"/>
+			<F N="../ChromaAeon74/Debug/syscfg/ti_radio_config.c"/>
+			<F N="../ChromaAeon74/test_code.c"/>
+			<F N="../common/compression.cpp"/>
+		</Folder>
+		<Folder
+			Name="Header Files"
+			Filters="*.h;*.H;*.hh;*.hpp;*.hxx;*.inc;*.sh;*.cpy;*.if">
+			<F N="../ChromaAeon74/board.h"/>
+			<F N="../ChromaAeon74/epd.h"/>
+			<F N="../ChromaAeon74/board.h"/>
+			<F N="../ChromaAeon74/main.h"/>
+			<F N="../common/cc13xx.h"/>
+			<F N="../common/compression.h"/>
+			<F N="../common/drawing.h"/>
+			<F N="../common/eeprom.h"/>
+			<F N="../common/logging.h"/>
+			<F N="../common/powermgt.h"/>
+			<F N="../common/radio.h"/>
+			<F N="../common/RFQueue.h"/>
+			<F N="../common/syncedproto.h"/>
+			<F N="../shared/oepl-definitions.h"/>
+			<F N="../shared/oepl-proto.h"/>
+			<F N="../uzlib/src/defl_static.h"/>
+			<F N="../uzlib/src/tinf_compat.h"/>
+			<F N="../uzlib/src/tinf.h"/>
+			<F N="../uzlib/src/uzlib_conf.h"/>
+			<F N="../uzlib/src/uzlib.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/kernel/nortos/NoRTOS.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/kernel/nortos/posix/sys/types.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/kernel/nortos/posix/unistd.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/adi.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/aon_ioc.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/cpu.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/ddi.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/debug.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/gpio.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/interrupt.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/ioc.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/osc.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/prcm.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/pwr_ctrl.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_ble_cmd.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_common_cmd.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_data_entry.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_ieee_cmd.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_mailbox.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_prop_cmd.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rf_prop_mailbox.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/rom.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/sys_ctrl.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/udma.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/driverlib/vims.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_adi_2_refsys.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_adi_3_refsys.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_adi.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_aon_ioc.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_aon_pmctl.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_aon_rtc.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_aux_smph.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_ccfg.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_ccfg_simple_struct.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_chip_def.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_cpu_scs.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_ddi_0_osc.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_ddi.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_fcfg1.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_gpio.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_ints.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_ioc.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_memmap_common.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_memmap.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_nvic.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_prcm.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_rfc_pwr.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_sysctl.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_types.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_uart.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_udma.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/inc/hw_vims.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/cc13x1_cc26x1/rf_patches/rf_patch_cpe_prop.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/devices/DeviceFamily.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/display/Display.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/Board.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dma/UDMACC26XX.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dpl/ClockP.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dpl/HwiP.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dpl/SemaphoreP.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/dpl/SwiP.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/gpio/GPIOCC26XX.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/GPIO.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/NVS.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/nvs/NVSSPI25X.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/Power.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/power/PowerCC26X2.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/power/PowerCC26XX.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/rf/RFCC26X2.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/rf/RF.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/SPI.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/spi/SPICC26X2DMA.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/Temperature.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/UART2.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/uart2/UART2CC26X2.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/utils/List.h"/>
+			<F N="../../../ti/simplelink_cc13xx_cc26xx_sdk_8_30_01_01/source/ti/drivers/utils/RingBuf.h"/>
+			<F N="../ChromaAeon74/img.h"/>
+			<F N="../ChromaAeon74/main.h"/>
+			<F N="../ChromaAeon74/Debug/syscfg/ti_drivers_config.h"/>
+			<F N="../ChromaAeon74/Debug/syscfg/ti_radio_config.h"/>
+		</Folder>
+		<Folder
+			Name="Other Files"
+			Filters="">
+			<F N="../ChromaAeon74/cc13x1_cc26x1_nortos.cmd"/>
+			<F N="../ChromaAeon74/ChromaAeon74.syscfg"/>
+			<F N="../README.md"/>
+			<F N="../ChromaAeon74/update_vpj.sh"/>
 		</Folder>
 	</Files>
 	<Macro>
-		<ExecMacro CmdLine="set_save_option - E" />
-		<ExecMacro CmdLine="tabs 1 4" />
+		<ExecMacro CmdLine="set_save_option - E"/>
+		<ExecMacro CmdLine="tabs 1 4"/>
 	</Macro>
 </Project>

@@ -10,8 +10,9 @@
 #include "oepl-definitions.h"
 #include "drawing.h"
 #include "eeprom.h"
+#include "uzlib.h"
 
-#define VERBOSE_DEUG_LOGGING
+// #define VERBOSE_DEUG_LOGGING
 #include "logging.h"
 
 // BLOCK_XFER_BUFFER_SIZE is about 4k bytes
@@ -26,11 +27,31 @@ extern uint8_t blockXferBuffer[BLOCK_XFER_BUFFER_SIZE];
 bool g2BitsPerPixel;
 bool gBlackPass;
 bool gDrawFromFlash;
+bool gGzipedImage;
 
 uint16_t gPartY;
 uint16_t gDrawY;
 uint32_t gEEpromAdr;
 
+#define MAX_WINDOW_SIZE 8192
+#define ZLIB_CACHE_SIZE 256
+struct {
+   struct uzlib_uncomp lib;
+   uint32_t Size;
+   uint32_t Pos;
+   uint8_t InBuf[ZLIB_CACHE_SIZE];
+   uint8_t Dict[MAX_WINDOW_SIZE];
+} gUzLib;
+
+
+// DATATYPE_IMG_ZLIB compressed format
+struct CompressedHdr {
+   uint8_t Len;
+   uint16_t Width;
+   uint16_t Height;
+   uint8_t bpp;
+} __packed;
+                                                    // image format: [uint8_t header length][uint16_t width][uint16_t height][uint8_t bpp (lower 4)][img data]
 
 #ifdef EPD_CODE
 
@@ -213,6 +234,33 @@ void Epd_DrawPattern(void)
     Epd_TurnOnDisplay();
 }
 
+bool ImageRead(void *pDst, uint16_t len)
+{
+   bool bRet = false;   // Assume the best
+   int Err;
+
+   if(!gGzipedImage) {
+      eepromRead(gEEpromAdr,pDst,len);
+      gEEpromAdr += len;
+   }
+   else {
+      memset(pDst,0xaa,len);
+      gUzLib.lib.dest_start = pDst;
+      gUzLib.lib.dest = pDst;
+      gUzLib.lib.dest_limit = gUzLib.lib.dest + len;
+      VLOG("dest 0x%x dest_limit 0x%x\n",gUzLib.lib.dest,gUzLib.lib.dest_limit);
+      if((Err = uzlib_uncompress_chksum(&gUzLib.lib)) != TINF_OK) {
+         ELOG("uzlib_uncompress_chksum failed %d\n",Err);
+         bRet = true;
+      }
+      int32_t BytesRead = gUzLib.lib.dest_limit - gUzLib.lib.dest_start;
+      VLOG("Returning %d bytes:\n",len);
+      VDUMP_HEX(gUzLib.lib.dest_start,len);
+   }
+
+   return bRet;
+}
+
 void DoPass()
 {
    uint8_t Part;
@@ -233,9 +281,9 @@ void DoPass()
             memset(blockXferBuffer,0,BYTES_PER_PART);
          }
          else {
-            eepromRead(gEEpromAdr,blockXferBuffer,BYTES_PER_PART);
-            // VDUMP_HEX(blockXferBuffer,BYTES_PER_PART);
-            gEEpromAdr += BYTES_PER_PART;
+            if(ImageRead(blockXferBuffer,BYTES_PER_PART)) {
+               break;
+            }
          }
          if(gBlackPass) {
             for(int i = 0; i < BYTES_PER_PART; i++) {
@@ -268,17 +316,78 @@ void drawWithSleep(void)
     Epd_WaitUntilIdle();
 }
 
+/* 
+   If source_limit == NULL, or source >= source_limit, this function
+   will be used to read next byte from source stream. The function may
+   also return -1 in case of EOF (or irrecoverable error). Note that
+   besides returning the next byte, it may also update source and
+   source_limit fields, thus allowing for buffered operation.
+*/
+int UzlibReadCB(struct uzlib_uncomp *g)
+{
+   int Ret = -1;  // assume the worse
+   int32_t ReadLen = gUzLib.Size - gUzLib.Pos;
+
+   do {
+      if(ReadLen > ZLIB_CACHE_SIZE) {
+         ReadLen = ZLIB_CACHE_SIZE;
+      }
+      else if(ReadLen <= 0) {
+      // EOF
+         Ret = -1;
+         break;
+      }
+
+      if(!eepromRead(gEEpromAdr,gUzLib.InBuf,ReadLen)) {
+         gEEpromAdr += ReadLen;
+         gUzLib.Pos += ReadLen;
+         gUzLib.lib.source = &gUzLib.InBuf[1];
+         gUzLib.lib.source_limit = gUzLib.lib.source + ReadLen - 1;
+         Ret = gUzLib.InBuf[0];
+         VDUMP_HEX(gUzLib.InBuf,ReadLen);
+      }
+   } while(false);
+
+   return Ret;
+}
+
+
+bool DrawGzipedInit()
+{
+   int WinSize;
+   bool bRet = false;   // Assume the best
+
+   uzlib_uncompress_init(&gUzLib.lib,gUzLib.Dict,MAX_WINDOW_SIZE);
+
+   gUzLib.lib.source = &gUzLib.InBuf[1]; // first byte read by UzlibReadCB()
+   gUzLib.lib.source_limit = NULL;
+   gUzLib.lib.source_read_cb = UzlibReadCB;
+
+   if((WinSize = uzlib_zlib_parse_header(&gUzLib.lib)) < 0) {
+       ELOG("Error parsing header: %d\n",WinSize);
+       bRet = true;
+   }
+   else {
+   // the window size is reported as 2^(x-8).
+      WinSize = 0x100 << WinSize;
+      if(WinSize > MAX_WINDOW_SIZE) {
+         ELOG("Winsize %d is not supported\n",WinSize);
+         bRet = true;
+      }
+   }
+   LOG("Returning %d\n",bRet);
+   return bRet;
+}
+
 void drawImageAtAddress(uint32_t addr, uint8_t lut)
 {
    struct EepromImageHeader Hdr;
-
-   gEEpromAdr = addr;
+   struct CompressedHdr CompressedHdr;
    LOG("Adr 0x%x lut %d\n",addr,lut);
    do {
-      if(eepromRead(gEEpromAdr,&Hdr,sizeof(Hdr))) {
+      if(eepromRead(addr,&Hdr,sizeof(Hdr))) {
          break;
       }
-      gEEpromAdr += sizeof(Hdr);
 
       if(Hdr.validMarker != EEPROM_IMG_VALID) {
          ELOG("Hdr is not valid\n");
@@ -286,19 +395,54 @@ void drawImageAtAddress(uint32_t addr, uint8_t lut)
          break;
       }
 
-      if(Hdr.dataType == DATATYPE_IMG_RAW_1BPP) {
-         VLOG("DATATYPE_IMG_RAW_1BPP\n");
-         g2BitsPerPixel = false;
-      }
-      else if(Hdr.dataType == DATATYPE_IMG_RAW_2BPP) {
-         VLOG("DATATYPE_IMG_RAW_2BPP\n");
-         g2BitsPerPixel = true;
+      gEEpromAdr = addr + sizeof(Hdr);
+      if(Hdr.dataType == DATATYPE_IMG_ZLIB) {
+         VLOG("DATATYPE_IMG_ZLIB\n");
+         if(eepromRead(gEEpromAdr,&gUzLib.Size,sizeof(gUzLib.Size))) {
+            break;
+         }
+         gEEpromAdr += sizeof(gUzLib.Size);
+         VLOG("gUzLib.Size %u\n",gUzLib.Size);
+         gGzipedImage = true;
+         if(DrawGzipedInit()) {
+            break;
+         }
+      // Read the actual header
+         if(ImageRead(&CompressedHdr,sizeof(CompressedHdr))) {
+            break;
+         }
+         VLOG("%d x %d, %d BPP\n",CompressedHdr.Width,CompressedHdr.Height,
+             CompressedHdr.bpp);
+         CompressedHdr.bpp &= 0xf;
+
+         if(CompressedHdr.bpp == 1) {
+            g2BitsPerPixel = false;
+         }
+         else if(CompressedHdr.bpp == 2) {
+            g2BitsPerPixel = true;
+         }
+         else {
+            ELOG("%d BPP not supported\n",CompressedHdr.bpp);
+            break;
+         }
       }
       else {
-         ELOG("dataType 0x%x not supported\n",Hdr.dataType);
-         break;
+         gGzipedImage = false;
+         if(Hdr.dataType == DATATYPE_IMG_RAW_1BPP) {
+            VLOG("DATATYPE_IMG_RAW_1BPP\n");
+            g2BitsPerPixel = false;
+         }
+         else if(Hdr.dataType == DATATYPE_IMG_RAW_2BPP) {
+            VLOG("DATATYPE_IMG_RAW_2BPP\n");
+            g2BitsPerPixel = true;
+         }
+         else {
+            ELOG("dataType 0x%x not supported\n",Hdr.dataType);
+            break;
+         }
+         VLOG("size %u\n",Hdr.size);
       }
-      VLOG("size %u\n",Hdr.size);
+
 
       LOG("Drawing starting @ %u...\n",clock_time());
       Epd_Init();

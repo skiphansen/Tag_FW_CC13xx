@@ -48,6 +48,7 @@
                                     <listOptionValue value="${COM_TI_SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR}/kernel/nortos"/>
                                     <listOptionValue value="${COM_TI_SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR}/kernel/nortos/posix"/>
                                     <listOptionValue value="${PROJECT_ROOT}/../common"/>
+                                    <listOptionValue value="${PROJECT_ROOT}/../uzlib/src"/>
                                     <listOptionValue value="${PROJECT_ROOT}/../shared"/>
                                 </option>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.compilerID.DEFINE.1365504894" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.compilerID.DEFINE" valueType="definedSymbols">
@@ -98,6 +99,31 @@
                                 <option id="com.ti.ccstudio.buildDefinitions.sysConfig.PART.1121889595" superClass="com.ti.ccstudio.buildDefinitions.sysConfig.PART" value="Default" valueType="string"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.sysConfig.CONTEXT.1903731858" superClass="com.ti.ccstudio.buildDefinitions.sysConfig.CONTEXT" value="system" valueType="string"/>
                             </tool>
+                        </toolChain>
+                    </folderInfo>
+                    <folderInfo id="com.ti.ccstudio.buildDefinitions.TMS470.Debug.1411062477.uzlib" name="uzlib" resourcePath="uzlib">
+                        <toolChain id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.exe.DebugToolchain.804899709" name="TI Build Tools" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.exe.DebugToolchain" unusedChildren="">
+                            <option id="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS.1575150674.2095228875" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS.1575150674"/>
+                            <option id="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION.1883047784.37093686" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION.1883047784"/>
+                            <targetPlatform id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.exe.targetPlatformDebug" name="Platform" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.exe.targetPlatformDebug"/>
+                            <tool id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.exe.compilerDebug.621727916" name="Arm Compiler" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.exe.compilerDebug.1771227679">
+                                <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.compilerID.INCLUDE_PATH.1505230406" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.compilerID.INCLUDE_PATH" valueType="includePath">
+                                    <listOptionValue value="${SYSCONFIG_TOOL_INCLUDE_PATH}"/>
+                                    <listOptionValue value="${COM_TI_SIMPLELINK_CC13XX_CC26XX_SDK_INCLUDE_PATH}"/>
+                                    <listOptionValue value="${PROJECT_ROOT}"/>
+                                    <listOptionValue value="${PROJECT_ROOT}/${ConfigName}"/>
+                                    <listOptionValue value="${COM_TI_SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR}/source"/>
+                                    <listOptionValue value="${COM_TI_SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR}/kernel/nortos"/>
+                                    <listOptionValue value="${COM_TI_SIMPLELINK_CC13XX_CC26XX_SDK_INSTALL_DIR}/kernel/nortos/posix"/>
+                                    <listOptionValue value="${PROJECT_ROOT}/../common"/>
+                                    <listOptionValue value="${PROJECT_ROOT}/../uzlib/src"/>
+                                    <listOptionValue value="${PROJECT_ROOT}/../shared"/>
+                                </option>
+                            </tool>
+                            <tool id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.exe.linkerDebug.653329991" name="Arm Linker" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.exe.linkerDebug.1334703124"/>
+                            <tool id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.hex.1107483349" name="Arm Hex Utility" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.hex.1267962058"/>
+                            <tool id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.objcopy.1435799834" name="Arm Objcopy Utility" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_4.0.objcopy.1604362610"/>
+                            <tool id="com.ti.ccstudio.buildDefinitions.sysConfig.1255755343" name="SysConfig" superClass="com.ti.ccstudio.buildDefinitions.sysConfig.1331032518"/>
                         </toolChain>
                     </folderInfo>
                     <sourceEntries>

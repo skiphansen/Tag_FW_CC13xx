@@ -745,6 +745,7 @@ bool processAvailDataInfo(struct AvailDataInfo *avail)
          break;
       case DATATYPE_IMG_RAW_1BPP:
       case DATATYPE_IMG_RAW_2BPP:
+      case DATATYPE_IMG_ZLIB:
          LOG("RAW_BPP\n");
             // check if this download is currently displayed or active
          if(curDataInfo.dataSize == 0 && !memcmp((const void *)&avail->dataVer, (const void *)&curDataInfo.dataVer, 8)) {

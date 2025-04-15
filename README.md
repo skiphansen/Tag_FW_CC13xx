@@ -22,13 +22,15 @@ tag from batteries yet.  Currently the "sleep" current consumption is **4 ma**.
 
 To Do List:
 
+- [X] Add gzip support for image downloads
 - [ ] Add support for battery voltage and temperature measurements and reporting.
-- [ ] Add UI support (initial port info screens and AP lost screen)
+- [ ] Add UI support (initial startup info screens and AP lost screen)
 - [ ] Add status icons to normal displays (AP lost and low battery)
 - [ ] Add support for static screens
 - [ ] Modify EPD interface to use SPI hardware rather than bit banging.
-- [ ] Audit current consumption
-- [ ] Add gzip support for image downloads
 - [ ] Replace TI NVS driver with something simpler (probably needed for OTA support)
 - [ ] Add OTA support
+- [ ] Check Tx power
+- [ ] Audit current consumption
+
 

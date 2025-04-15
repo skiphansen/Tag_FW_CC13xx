@@ -1,3 +1,6 @@
 [submodule "shared"]
 	path = shared
 	url = https://github.com/OpenEPaperLink/Shared_OEPL_Definitions.git
+[submodule "uzlib"]
+	path = uzlib
+	url = https://github.com/pfalcon/uzlib

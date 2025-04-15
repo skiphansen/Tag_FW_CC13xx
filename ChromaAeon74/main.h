@@ -15,7 +15,7 @@
 #define DEBUG_MAX_SLEEP    5000
 // version number (
 // NB: the first version # that will be displayed by the AP is 2
-#define FW_VERSION         0x0002   // version number (NB: first ver
+#define FW_VERSION         0x0003
 
 #define SERIAL_LOG
 #define DEBUG_LOGGING

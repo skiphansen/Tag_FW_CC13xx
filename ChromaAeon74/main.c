@@ -93,7 +93,7 @@ void *mainThread(void *arg0)
    NVS_close(gNvs);
    gNvs = NULL;
 #if 0
-   drawImageAtAddress(0x4c000,0);
+   drawImageAtAddress(0x90000,0);
    wdt10s();
    while(true);
    batteryVoltage = get_battery_mv();
