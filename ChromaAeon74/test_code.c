@@ -190,18 +190,16 @@ void SpiTest()
    uint8_t SPDP_CmdBuf[] = {
       0x5a,    // Cmd
       0, 0, 0, // daddr
-      0,       // dummy
-      0,0,0,0,0,0,0,0   // send zeros while reading data
+      0        // dummy
    };
-   uint8_t SPDP_RxBuf[sizeof(SPDP_CmdBuf)];
+   uint8_t SPDP_RxBuf[8];
 
    LOG("Called\n");
    SPI_init();
 
    memset(SPDP_RxBuf,0xaa,sizeof(SPDP_RxBuf));
    SPI_Params_init(&spiParams);
-//   spiParams.bitRate      = 4000000;
-   spiParams.bitRate      = 100000;
+   spiParams.bitRate      = 4000000;
    spiParams.mode         = SPI_CONTROLLER;
    spiParams.transferMode = SPI_MODE_BLOCKING;
    // spiParams.frameFormat = SPI_POL0_PHA1;
@@ -233,7 +231,6 @@ void SpiTest()
       }
       ClockP_usleep(100);
 
-
       transaction.count = sizeof(SPDP_CmdBuf);
       transaction.txBuf = (void *)SPDP_CmdBuf;
       transaction.rxBuf = (void *)SPDP_RxBuf;
@@ -241,18 +238,27 @@ void SpiTest()
       LOG("Cmd:\n");
       DUMP_HEX(SPDP_CmdBuf,sizeof(SPDP_CmdBuf));
 
-       /* Perform SPI transfer */
+    // Send command
       GPIO_write(CONFIG_GPIO_NVS_FLASH_CS_CONST,0);
       transferOK = SPI_transfer(controllerSpi, &transaction);
-      GPIO_write(CONFIG_GPIO_NVS_FLASH_CS_CONST,1);
       if(!transferOK) {
          LOG("SPI_transfer 1 failed\n");
+         break;
+      }
+    // Read data
+      transaction.count = 8;
+      transaction.txBuf = (void *)SPDP_RxBuf;
+      transaction.rxBuf = (void *)SPDP_RxBuf;
+      transferOK = SPI_transfer(controllerSpi, &transaction);
+      if(!transferOK) {
+         LOG("SPI_transfer 2 failed\n");
          break;
       }
       LOG("Read:\n");
       DUMP_HEX(SPDP_RxBuf,sizeof(SPDP_RxBuf));
    } while(false);
 
+   GPIO_write(CONFIG_GPIO_NVS_FLASH_CS_CONST,1);
    SPI_close(controllerSpi);
    LOG("Done\n");
    while(true);
