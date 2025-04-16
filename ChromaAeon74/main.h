@@ -11,6 +11,7 @@
 // #define NVS_TEST
 // #define NVS_TEST_READBACK_ONLY
 // #define WRITE_EPD_IMAGE
+// #define SPI_TEST
 
 #define DEBUG_MAX_SLEEP    5000
 // version number (
@@ -58,6 +59,12 @@ void NvrDump(void);
 void NvrTest(void);
 #else
 #define NvrTest()
+#endif
+
+#ifdef SPI_TEST
+void SpiTest(void);
+#else
+#define SpiTest()
 #endif
 
 uint16_t get_battery_mv();

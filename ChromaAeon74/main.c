@@ -81,6 +81,7 @@ void *mainThread(void *arg0)
    LOG("ChromaAeon74 Ver %d compiled " __DATE__ " " __TIME__ "\n",FW_VERSION);
 
    InitSN();
+   SpiTest();
    NVS_init();
    eepromInit();
 
