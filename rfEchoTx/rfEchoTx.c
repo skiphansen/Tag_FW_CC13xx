@@ -237,7 +237,7 @@ void *mainThread(void *arg0)
           }
           else if(gChannel >= 200 && gChannel <= 205) {
           // 915 Mhz
-             RF_cmdPropRadioDivSetup.centerFreq = g868SynthValues[gChannel-200][0];
+             RF_cmdPropRadioDivSetup.centerFreq = g915SynthValues[gChannel-200][0];
              RF_cmdFs.frequency = g915SynthValues[gChannel-200][0];
              RF_cmdFs.fractFreq = g915SynthValues[gChannel-200][1];
           }
