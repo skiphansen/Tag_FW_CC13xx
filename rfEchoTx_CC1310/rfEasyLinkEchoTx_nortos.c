@@ -64,6 +64,8 @@
 
 #define RFEASYLINKECHO_PAYLOAD_LENGTH     30
 
+#define SPI_TEST
+
 static uint8_t CreatePingPacket(void);
 
 
@@ -151,6 +153,136 @@ const uint16_t g915SynthValues[6][2] = {
    {0x39b,0x2334}   // Channel 205 / CHANNR 60: 923.137695 Mhz
 };
 
+#ifdef SPI_TEST
+#include <ti/drivers/SPI.h>
+
+uint8_t SPDP_RxBuf[256];
+void SpiTest()
+{
+   SPI_Handle controllerSpi;
+   SPI_Params spiParams;
+   SPI_Transaction transaction;
+   uint32_t i;
+   bool transferOK;
+   int32_t status;
+   int_fast16_t Err;
+   uint8_t Wake_Cmd = 0xab;
+   uint8_t SPDP_CmdBuf[] = {
+      0x5a,    // Cmd
+      0, 0, 0, // daddr
+      0        // dummy
+   };
+
+   LOG("Called\n");
+   SPI_init();
+#if 0
+   PIN_Config SpiPins[] = {
+       /* SPI Flash CS */
+       IOID_11 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_HIGH | PIN_PUSHPULL |
+               PIN_INPUT_DIS | PIN_DRVSTR_MED,
+      // MISO
+      IOID_10 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_HIGH | PIN_PUSHPULL |
+              PIN_INPUT_DIS | PIN_DRVSTR_MED,
+//      IOID_10 | PIN_INPUT_EN | PIN_PULLUP,
+      // MOSI
+      IOID_8 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_HIGH | PIN_PUSHPULL |
+              PIN_INPUT_DIS | PIN_DRVSTR_MED,
+      // CLK
+      IOID_9 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_HIGH | PIN_PUSHPULL |
+              PIN_INPUT_DIS | PIN_DRVSTR_MED,
+
+       PIN_TERMINATE
+   };
+   PIN_State PinState;
+   PIN_Handle PinHandle = PIN_open(&PinState, SpiPins);
+   if(PinHandle == NULL) {
+      LOG("PIN_open failed\n");
+      while(true);
+   }
+
+   while(true) {
+      PIN_setOutputValue(PinHandle,IOID_10,true);
+      PIN_setOutputValue(PinHandle,IOID_10,false);
+   }
+#else
+
+
+   PIN_Config SpiPins[] = {
+       /* SPI Flash CS */
+      IOID_11 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_HIGH | PIN_PUSHPULL |
+               PIN_INPUT_DIS | PIN_DRVSTR_MED,
+       PIN_TERMINATE
+   };
+   PIN_State PinState;
+   PIN_Handle PinHandle = PIN_open(&PinState, SpiPins);
+   if(PinHandle == NULL) {
+      LOG("PIN_open failed\n");
+      while(true);
+   }
+
+   memset(SPDP_RxBuf,0xaa,sizeof(SPDP_RxBuf));
+   SPI_Params_init(&spiParams);
+   spiParams.bitRate      = 12000000;  // 12 Mhz is the maximum for CC13XX
+   spiParams.mode         = SPI_MASTER;
+   spiParams.transferMode = SPI_MODE_BLOCKING;
+   spiParams.frameFormat = SPI_POL0_PHA0;
+   do {
+      if((controllerSpi = SPI_open(Board_SPI0,&spiParams)) == NULL) {
+         LOG("Error initializing controller SPI\n");
+         break;
+      }
+
+   // Wake EEPROM from sleep
+      transaction.count = 1;
+      transaction.txBuf = (void *)&Wake_Cmd;
+      transaction.rxBuf = (void *)SPDP_RxBuf;
+
+       /* Perform SPI transfer */
+      PIN_setOutputValue(PinHandle,CC1310_LAUNCHXL_SPI_FLASH_CS,false);
+      transferOK = SPI_transfer(controllerSpi, &transaction);
+      PIN_setOutputValue(PinHandle,CC1310_LAUNCHXL_SPI_FLASH_CS,true);
+      if(!transferOK) {
+         LOG("SPI_transfer failed:\n");
+         break;
+      }
+      ClockP_usleep(100);
+
+      transaction.count = sizeof(SPDP_CmdBuf);
+      transaction.txBuf = (void *)SPDP_CmdBuf;
+      transaction.rxBuf = (void *)SPDP_RxBuf;
+
+      LOG("Cmd:\n");
+      DUMP_HEX(SPDP_CmdBuf,sizeof(SPDP_CmdBuf));
+      memset(SPDP_RxBuf,0xaa,sizeof(SPDP_RxBuf));
+
+    // Send command
+      PIN_setOutputValue(PinHandle,CC1310_LAUNCHXL_SPI_FLASH_CS,false);
+      transferOK = SPI_transfer(controllerSpi, &transaction);
+      if(!transferOK) {
+         LOG("SPI_transfer 1 failed\n");
+         break;
+      }
+    // Read data
+      transaction.count = sizeof(SPDP_RxBuf);
+      transaction.txBuf = (void *)SPDP_RxBuf;
+      transaction.rxBuf = (void *)SPDP_RxBuf;
+      transferOK = SPI_transfer(controllerSpi, &transaction);
+      if(!transferOK) {
+         LOG("SPI_transfer 2 failed\n");
+         break;
+      }
+      LOG("Read:\n");
+      DUMP_HEX(SPDP_RxBuf,sizeof(SPDP_RxBuf));
+   } while(false);
+
+   PIN_setOutputValue(PinHandle,CC1310_LAUNCHXL_SPI_FLASH_CS,true);
+   SPI_close(controllerSpi);
+   LOG("Done\n");
+#endif
+   while(true);
+}
+#endif   // SPI_TEST
+
 void *mainThread(void *arg0)
 {
     EasyLink_Status Err;
@@ -158,6 +290,10 @@ void *mainThread(void *arg0)
 
     InitLogging();
     LOG_RAW("rfEchoTx_CC1310 compiled " __DATE__ " " __TIME__ "\n");
+#ifdef SPI_TEST
+    SpiTest();
+    while(true);
+#endif
 
 #ifdef RFEASYLINKECHO_ASYNC
     /* Reset the timeout flag */
@@ -363,4 +499,5 @@ static uint8_t CreatePingPacket()
 
     return (uint8_t) sizeof(*txframe) + 3;   // NB: Tx len includes CRC
 }
+
 

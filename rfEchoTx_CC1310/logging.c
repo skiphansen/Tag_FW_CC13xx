@@ -46,6 +46,7 @@ int LogPrintf(char *fmt, ...)
     return Len;
 }
 
+#if 0
 void DumpHex(void *AdrIn,int Len)
 {
    unsigned char *Adr = (unsigned char *) AdrIn;
@@ -76,6 +77,27 @@ void DumpHex(void *AdrIn,int Len)
       LOG_RAW("\n");
    }
 }
+#else
+// Source code version
+void DumpHex(void *AdrIn,int Len)
+{
+   unsigned char *Adr = (unsigned char *) AdrIn;
+   int i = 0;
+   int j;
+
+   while(i < Len) {
+      for(j = 0; j < 16; j++) {
+         if((i + j) == Len) {
+            break;
+         }
+         LOG_RAW("0x%02x,",Adr[i+j]);
+      }
+      i += 16;
+      LOG_RAW("\n");
+   }
+}
+#endif
+
 
 #endif   // SERIAL_LOG
 

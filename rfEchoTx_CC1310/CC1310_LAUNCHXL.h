@@ -127,7 +127,7 @@ extern const PIN_Config BoardGpioInitTable[];
 #define CC1310_LAUNCHXL_SPI0_MISO             IOID_10          /* RF1.20 */
 #define CC1310_LAUNCHXL_SPI0_MOSI             IOID_8          /* modified for Chroma 21 */
 #define CC1310_LAUNCHXL_SPI0_CLK              IOID_9         /* RF1.16 */
-#define CC1310_LAUNCHXL_SPI0_CSN              IOID_11
+#define CC1310_LAUNCHXL_SPI0_CSN              PIN_UNASSIGNED
 #define CC1310_LAUNCHXL_SPI1_MISO             PIN_UNASSIGNED
 #define CC1310_LAUNCHXL_SPI1_MOSI             PIN_UNASSIGNED
 #define CC1310_LAUNCHXL_SPI1_CLK              PIN_UNASSIGNED
