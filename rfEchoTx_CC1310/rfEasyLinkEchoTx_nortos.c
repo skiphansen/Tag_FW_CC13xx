@@ -65,6 +65,8 @@
 #define RFEASYLINKECHO_PAYLOAD_LENGTH     30
 
 #define SPI_TEST
+// #define CHROMA_PROXY
+
 
 static uint8_t CreatePingPacket(void);
 
@@ -154,58 +156,52 @@ const uint16_t g915SynthValues[6][2] = {
 };
 
 #ifdef SPI_TEST
+#include "eeprom.h"
+
+uint8_t RxBuf[4096];
+void SpiTest()
+{
+   uint32_t addr = 0;
+
+   memset(RxBuf,0xaa,sizeof(RxBuf));
+   do {
+      if(eepromGetSFDP(RxBuf,128)) {
+         LOG("eepromGetSFDP failed\n");
+         break;
+      }
+      LOG("SFDP:\n");
+      DUMP_HEX(RxBuf,128);
+      if(eepromRead(0,RxBuf,sizeof(RxBuf))) {
+         LOG("eepromRead failed\n");
+         break;
+      }
+      while(addr < 128*1024) {
+         LOG("0x%x:\n",addr);
+         if(eepromRead(addr,RxBuf,sizeof(RxBuf))) {
+            LOG("eepromRead failed\n");
+            break;
+         }
+         DUMP_HEX(RxBuf,sizeof(RxBuf));
+         addr += 4096;
+      }
+
+   } while(false);
+   while(true);
+}
+#endif   // SPI_TEST
+
+#ifdef CHROMA_PROXY
 #include <ti/drivers/SPI.h>
 
-uint8_t SPDP_RxBuf[256];
-void SpiTest()
+PIN_Handle gPinHandle;
+
+void SpiInit()
 {
    SPI_Handle controllerSpi;
    SPI_Params spiParams;
-   SPI_Transaction transaction;
-   uint32_t i;
-   bool transferOK;
-   int32_t status;
-   int_fast16_t Err;
-   uint8_t Wake_Cmd = 0xab;
-   uint8_t SPDP_CmdBuf[] = {
-      0x5a,    // Cmd
-      0, 0, 0, // daddr
-      0        // dummy
-   };
 
    LOG("Called\n");
    SPI_init();
-#if 0
-   PIN_Config SpiPins[] = {
-       /* SPI Flash CS */
-       IOID_11 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_HIGH | PIN_PUSHPULL |
-               PIN_INPUT_DIS | PIN_DRVSTR_MED,
-      // MISO
-      IOID_10 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_HIGH | PIN_PUSHPULL |
-              PIN_INPUT_DIS | PIN_DRVSTR_MED,
-//      IOID_10 | PIN_INPUT_EN | PIN_PULLUP,
-      // MOSI
-      IOID_8 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_HIGH | PIN_PUSHPULL |
-              PIN_INPUT_DIS | PIN_DRVSTR_MED,
-      // CLK
-      IOID_9 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_HIGH | PIN_PUSHPULL |
-              PIN_INPUT_DIS | PIN_DRVSTR_MED,
-
-       PIN_TERMINATE
-   };
-   PIN_State PinState;
-   PIN_Handle PinHandle = PIN_open(&PinState, SpiPins);
-   if(PinHandle == NULL) {
-      LOG("PIN_open failed\n");
-      while(true);
-   }
-
-   while(true) {
-      PIN_setOutputValue(PinHandle,IOID_10,true);
-      PIN_setOutputValue(PinHandle,IOID_10,false);
-   }
-#else
-
 
    PIN_Config SpiPins[] = {
        /* SPI Flash CS */
@@ -214,74 +210,14 @@ void SpiTest()
        PIN_TERMINATE
    };
    PIN_State PinState;
-   PIN_Handle PinHandle = PIN_open(&PinState, SpiPins);
-   if(PinHandle == NULL) {
+   PIN_Handle gPinHandle = PIN_open(&PinState, SpiPins);
+   if(gPinHandle == NULL) {
       LOG("PIN_open failed\n");
       while(true);
    }
-
-   memset(SPDP_RxBuf,0xaa,sizeof(SPDP_RxBuf));
-   SPI_Params_init(&spiParams);
-   spiParams.bitRate      = 12000000;  // 12 Mhz is the maximum for CC13XX
-   spiParams.mode         = SPI_MASTER;
-   spiParams.transferMode = SPI_MODE_BLOCKING;
-   spiParams.frameFormat = SPI_POL0_PHA0;
-   do {
-      if((controllerSpi = SPI_open(Board_SPI0,&spiParams)) == NULL) {
-         LOG("Error initializing controller SPI\n");
-         break;
-      }
-
-   // Wake EEPROM from sleep
-      transaction.count = 1;
-      transaction.txBuf = (void *)&Wake_Cmd;
-      transaction.rxBuf = (void *)SPDP_RxBuf;
-
-       /* Perform SPI transfer */
-      PIN_setOutputValue(PinHandle,CC1310_LAUNCHXL_SPI_FLASH_CS,false);
-      transferOK = SPI_transfer(controllerSpi, &transaction);
-      PIN_setOutputValue(PinHandle,CC1310_LAUNCHXL_SPI_FLASH_CS,true);
-      if(!transferOK) {
-         LOG("SPI_transfer failed:\n");
-         break;
-      }
-      ClockP_usleep(100);
-
-      transaction.count = sizeof(SPDP_CmdBuf);
-      transaction.txBuf = (void *)SPDP_CmdBuf;
-      transaction.rxBuf = (void *)SPDP_RxBuf;
-
-      LOG("Cmd:\n");
-      DUMP_HEX(SPDP_CmdBuf,sizeof(SPDP_CmdBuf));
-      memset(SPDP_RxBuf,0xaa,sizeof(SPDP_RxBuf));
-
-    // Send command
-      PIN_setOutputValue(PinHandle,CC1310_LAUNCHXL_SPI_FLASH_CS,false);
-      transferOK = SPI_transfer(controllerSpi, &transaction);
-      if(!transferOK) {
-         LOG("SPI_transfer 1 failed\n");
-         break;
-      }
-    // Read data
-      transaction.count = sizeof(SPDP_RxBuf);
-      transaction.txBuf = (void *)SPDP_RxBuf;
-      transaction.rxBuf = (void *)SPDP_RxBuf;
-      transferOK = SPI_transfer(controllerSpi, &transaction);
-      if(!transferOK) {
-         LOG("SPI_transfer 2 failed\n");
-         break;
-      }
-      LOG("Read:\n");
-      DUMP_HEX(SPDP_RxBuf,sizeof(SPDP_RxBuf));
-   } while(false);
-
-   PIN_setOutputValue(PinHandle,CC1310_LAUNCHXL_SPI_FLASH_CS,true);
-   SPI_close(controllerSpi);
-   LOG("Done\n");
-#endif
-   while(true);
 }
-#endif   // SPI_TEST
+#endif   // CHROMA_PROXY
+
 
 void *mainThread(void *arg0)
 {

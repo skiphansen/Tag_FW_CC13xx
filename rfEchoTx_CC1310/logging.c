@@ -46,7 +46,7 @@ int LogPrintf(char *fmt, ...)
     return Len;
 }
 
-#if 0
+#if 1
 void DumpHex(void *AdrIn,int Len)
 {
    unsigned char *Adr = (unsigned char *) AdrIn;
