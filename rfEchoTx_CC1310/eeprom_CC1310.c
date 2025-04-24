@@ -15,6 +15,7 @@
 // #define CMD_ERASE_32K
 // #define CMD_ERASE_64K
 #define CMD_RDSFDP      0x5a
+#define CMD_REMS        0x90
 #define CMD_DP          0xb9
 
 #define SPI_FLASH_CS    IOID_11
@@ -155,6 +156,12 @@ bool eepromGetSFDP(void *pDst,uint32_t len)
 {
    return eepromReadInternal(CMD_RDSFDP,0,pDst,len);
 }
+
+bool eepromGetID(void *pDst)
+{
+   return eepromReadInternal(CMD_REMS,0,pDst,2);
+}
+
 
 // Wait for any write operation to complete
 static void eepromPrvBusyWait(void) 

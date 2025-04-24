@@ -5,7 +5,6 @@
 #include "Board.h"
 #include "logging.h"
 
-#ifdef SERIAL_LOG
 #if defined(DeviceFamily_CC13X0)
 UART_Handle gDebugUart;
 #endif
@@ -34,6 +33,7 @@ void InitLogging()
    }
 }
 
+#if SERIAL_LOG == 1
 int LogPrintf(char *fmt, ...)
 {
     va_list args;
@@ -45,6 +45,8 @@ int LogPrintf(char *fmt, ...)
 
     return Len;
 }
+
+#endif   // SERIAL_LOG
 
 #if 1
 void DumpHex(void *AdrIn,int Len)
@@ -98,6 +100,4 @@ void DumpHex(void *AdrIn,int Len)
 }
 #endif
 
-
-#endif   // SERIAL_LOG
 

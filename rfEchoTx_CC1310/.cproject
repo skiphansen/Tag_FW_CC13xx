@@ -54,8 +54,7 @@
                                     <listOptionValue value="SUPPORT_PHY_50KBPS2GFSK"/>
                                     <listOptionValue value="SUPPORT_PHY_625BPSLRM"/>
                                     <listOptionValue value="SUPPORT_PHY_5KBPSSLLR"/>
-                                    <listOptionValue value="DEBUG_LOGGING"/>
-                                    <listOptionValue value="SERIAL_LOG"/>
+                                    <listOptionValue value="SERIAL_LOG=1"/>
                                 </option>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.SILICON_VERSION.1748721020" superClass="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.SILICON_VERSION" value="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.SILICON_VERSION.7M3" valueType="enumerated"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.CODE_STATE.400732333" superClass="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.CODE_STATE" value="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.CODE_STATE.16" valueType="enumerated"/>

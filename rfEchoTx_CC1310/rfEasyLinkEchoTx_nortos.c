@@ -45,6 +45,8 @@
 
 #include "oepl-definitions.h"
 #include "oepl-proto.h"
+
+#define DEBUG_LOGGING
 #include "logging.h"
 
 /* Driverlib APIs */
@@ -64,8 +66,8 @@
 
 #define RFEASYLINKECHO_PAYLOAD_LENGTH     30
 
-#define SPI_TEST
-// #define CHROMA_PROXY
+// #define SPI_TEST
+#define CHROMA_PROXY
 
 
 static uint8_t CreatePingPacket(void);
@@ -110,7 +112,7 @@ void echoRxDoneCb(EasyLink_RxPacket * rxPacket, EasyLink_Status status)
 
     if(status == EasyLink_Status_Success) {
 //       LOG("Received %d byte packet:\n",rxPacket->len);
-//       DumpHex(rxPacket->payload,rxPacket->len);
+//       DUMP_HEX(rxPacket->payload,rxPacket->len);
        gRxLen = rxPacket->len;
        gRxData = rxPacket->payload;
         /*
@@ -191,29 +193,198 @@ void SpiTest()
 #endif   // SPI_TEST
 
 #ifdef CHROMA_PROXY
-#include <ti/drivers/SPI.h>
+#include "CobsFraming.h"
+#include "proxy_msgs.h"
+#include <ti/drivers/UART.h>
 
-PIN_Handle gPinHandle;
+extern UART_Handle gDebugUart;
+int gRxMsgLen;
+#define MAX_FRAME_IO_LEN      120
+// We need 3 extra bytes because the CRC is received into the buffer
+// before we get the end of frame.  Additionally an 0 is appended to the
+// received data for convenience
+uint8_t gRxBuf[MAX_FRAME_IO_LEN+3];
+uint8_t gTxBuf[MAX_FRAME_IO_LEN+3];
 
-void SpiInit()
+typedef union {
+   int IntValue;
+   uint32_t Uint32Value;
+   int32_t Int32Value;
+   uint16_t Adr;
+   uint32_t Adr32;
+   uint8_t *pXdata; 
+   uint8_t Bytes[4];
+   uint8_t Uint8Value;
+} CastUnion;
+
+#define CMD_RESP  0x80
+// commands <CmdByte> <command data>
+// respones <CmdByte | 0x80> <Rcode> <response data>
+void HandleMsg()
 {
-   SPI_Handle controllerSpi;
-   SPI_Params spiParams;
+   int MsgLen = 2;
+   CastUnion uCast0;
+   CastUnion uCast1;
+   CastUnion *pResponse = (CastUnion *) &gTxBuf[2];
 
-   LOG("Called\n");
-   SPI_init();
+// Assume that the first two arguments are 16 bits
+   uCast0.Bytes[0] = gRxBuf[1];
+   uCast0.Bytes[1] = gRxBuf[2];
+   uCast0.Bytes[2] = uCast0.Bytes[3] = 0;
+   uCast1.Bytes[0] = gRxBuf[3];
+   uCast1.Bytes[1] = gRxBuf[4];
+   uCast1.Bytes[2] = uCast1.Bytes[3] = 0;
 
-   PIN_Config SpiPins[] = {
-       /* SPI Flash CS */
-      IOID_11 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_HIGH | PIN_PUSHPULL |
-               PIN_INPUT_DIS | PIN_DRVSTR_MED,
-       PIN_TERMINATE
-   };
-   PIN_State PinState;
-   PIN_Handle gPinHandle = PIN_open(&PinState, SpiPins);
-   if(gPinHandle == NULL) {
-      LOG("PIN_open failed\n");
-      while(true);
+   LOG("Got %d byte message:\n",gRxMsgLen);
+   DUMP_HEX(gRxBuf,gRxMsgLen);
+
+   gTxBuf[0] = gRxBuf[0] | CMD_RESP;
+   gTxBuf[1] = CMD_ERR_NONE;
+
+   switch(gRxBuf[0] & ~CMD_RESP) {
+      case CMD_PING:
+         LOG("Got ping\n");
+         break;
+
+      case CMD_EEPROM_RD:
+      // uCast1 = Adr
+      // uCast0 = Len
+         uCast1.Bytes[2] = gRxBuf[5];
+         if(uCast0.IntValue > sizeof(gRxBuf) - 2) {
+            gRxBuf[1] = CMD_ERR_BUF_OVFL;
+            break;
+         }
+         eepromRead(uCast1.Adr32,&gTxBuf[2],uCast0.IntValue);
+         MsgLen += uCast0.IntValue;
+         break;
+
+      case CMD_EEPROM_LEN:
+         pResponse->Uint32Value = eepromGetSize();
+         MsgLen += sizeof(uCast1.Uint32Value);
+         break;
+
+      case CMD_COMM_BUF_LEN:
+         pResponse->IntValue = sizeof(gRxBuf);
+         MsgLen += sizeof(uCast1.IntValue);
+         break;
+
+      case CMD_EEPROM_ID:
+         if(eepromGetID(&gTxBuf[2])) {
+            LOG("eepromGetID failed\n");
+            gTxBuf[1] = CMD_ERR_FAILED;
+         }
+         else {
+            MsgLen += 2;
+         }
+         break;
+
+      case CMD_READ_SFDP:
+         if(eepromGetSFDP(&gTxBuf[2],MAX_FRAME_IO_LEN - 2)) {
+            ELOG("eepromGetSFDP failed\n");
+            gTxBuf[1] = CMD_ERR_FAILED;
+         }
+         else {
+            ALOG("Read:\n");
+            DumpHex(&gTxBuf[2],MAX_FRAME_IO_LEN - 2);
+            MsgLen = MAX_FRAME_IO_LEN;
+         }
+         break;
+
+#if 0
+      case CMD_EEPROM_WR:
+      // uCast0 = Adr
+         uCast0.Bytes[2] = gRxBuf[3];
+#if 0
+         LOG("write %d @ 0x%lx 0x%x 0x%x 0x%x\n",gRxMsgLen-4,uCast0.Adr32,
+             gRxBuf[4],gRxBuf[5],gRxBuf[6]);
+#endif
+         u1setEepromMode();
+         if(!eepromWrite(uCast0.Adr32,(void __xdata *) &gRxBuf[4],gRxMsgLen-4)) {
+            gRxBuf[1] = CMD_ERR_FAILED;
+         }
+         u1setUartMode();
+      // purge the receiver of any data received in SPI mode
+         gUart1RxRd = gUart1RxWr;
+         break;
+
+
+      case CMD_BOARD_TYPE:
+         MsgLen += strlen(gBuildType);
+         memcpy(&gRxBuf[2],gBuildType,MsgLen-2);
+         break;
+
+
+      case CMD_RESET:
+         if(MARCSTATE != MARC_STATE_IDLE) {
+         // The watchdog won't timeout while transmitting !!!
+            IdleMode(); 
+         }
+         wdtDeviceReset();
+         break;
+
+      case CMD_EEPROM_ERASE:
+         LOG("Erase flash");
+         if(gRxMsgLen == 1) {
+         // Just command byte, erase entire chip
+            u1setEepromMode();
+            if(!eepromErase(0,32)) {
+               gRxBuf[1] = CMD_ERR_FAILED;
+            }
+         }
+         else if(gRxMsgLen == 6) {
+         // Adr, # sectors
+            LOG(", %d sectors from 0x%0lx",gRxBuf[5],uCast0.Uint32Value);
+            u1setEepromMode();
+            if(!eepromErase(uCast0.Uint32Value,gRxBuf[5])) {
+               gRxBuf[1] = CMD_ERR_FAILED;
+            }
+         }
+         else {
+            LOG(", invalid arg");
+            gRxBuf[1] = CMD_ERR_INVALID_ARG;
+         }
+         u1setUartMode();
+         LOG("\n");
+         break;
+
+#endif
+      default:
+         LOG("Unknown command 0x%x ignored\n",gRxBuf[0]);
+         gTxBuf[1] = CMD_ERR_INVALID_ARG;
+         break;
+   }
+
+   if(MsgLen != 0) {
+   // Send reply in gTxBuf
+      SerialFrameIO_SendMsg(gTxBuf,MsgLen);
+   }
+}
+
+void SerialFrameIO_SendByte(uint8_t TxByte)
+{
+   UART_write(gDebugUart,&TxByte,1);
+}
+
+void Proxy()
+{
+   int BytesRx = 0;
+   int MsgsRx = 0;
+
+   SerialFrameIO_Init(gRxBuf,sizeof(gRxBuf));
+
+   while(true) {
+      uint8_t Byte;
+      while(UART_read(gDebugUart,&Byte,1) == 0);
+      BytesRx++;
+      gRxMsgLen = SerialFrameIO_ParseByte(Byte);
+      if(gRxMsgLen == 0) {
+      // Byte was not consumed, just echo it
+         UART_write(gDebugUart,&Byte,1);
+      }
+      else if(gRxMsgLen > 0) {
+         MsgsRx++;
+         HandleMsg();
+      }
    }
 }
 #endif   // CHROMA_PROXY
@@ -225,10 +396,14 @@ void *mainThread(void *arg0)
     int TxPings = 1;
 
     InitLogging();
-    LOG_RAW("rfEchoTx_CC1310 compiled " __DATE__ " " __TIME__ "\n");
+    ALOG("rfEchoTx_CC1310 compiled " __DATE__ " " __TIME__ "\n");
 #ifdef SPI_TEST
     SpiTest();
     while(true);
+#endif
+
+#ifdef CHROMA_PROXY
+    Proxy();
 #endif
 
 #ifdef RFEASYLINKECHO_ASYNC
@@ -358,7 +533,7 @@ void *mainThread(void *arg0)
 
             if(gRxLen != 0) {
                LOG("Received %d byte packet:\n",gRxLen);
-               DumpHex(gRxData,gRxLen);
+               DUMP_HEX(gRxData,gRxLen);
             }
         }
     }
@@ -435,5 +610,4 @@ static uint8_t CreatePingPacket()
 
     return (uint8_t) sizeof(*txframe) + 3;   // NB: Tx len includes CRC
 }
-
 

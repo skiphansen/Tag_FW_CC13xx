@@ -1,12 +1,11 @@
 #ifndef _LOGGING_H_
 #define _LOGGING_H_
 
-#ifdef SERIAL_LOG
-   void InitLogging(void);
+void InitLogging(void);
+#if SERIAL_LOG == 1
    int LogPrintf(char *fmt, ...);
    #define _LOG(format, ...) LogPrintf(format,## __VA_ARGS__)
 #else
-   #define InitLogging()
    #define _LOG(format, ...)
 #endif   // SERIAL_LOG
 
