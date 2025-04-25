@@ -46,7 +46,6 @@
 #include "oepl-definitions.h"
 #include "oepl-proto.h"
 
-#define DEBUG_LOGGING
 #include "logging.h"
 
 /* Driverlib APIs */

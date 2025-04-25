@@ -23,5 +23,10 @@
 			<type>1</type>
 			<locationURI>COM_TI_SIMPLELINK_CC13X0_SDK_INSTALL_DIR/source/ti/boards/CC1310_LAUNCHXL/Board.html</locationURI>
 		</link>
+		<link>
+			<name>CobsFraming.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/common/CobsFraming.c</locationURI>
+		</link>
 	</linkedResources>
 </projectDescription>

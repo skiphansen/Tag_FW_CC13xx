@@ -11,15 +11,12 @@
 // #define NVS_TEST
 // #define NVS_TEST_READBACK_ONLY
 // #define WRITE_EPD_IMAGE
-// #define SPI_TEST
+#define SPI_TEST
 
 #define DEBUG_MAX_SLEEP    5000
 // version number (
 // NB: the first version # that will be displayed by the AP is 2
 #define FW_VERSION         0x0003
-
-#define SERIAL_LOG
-#define DEBUG_LOGGING
 
 #if defined(EPD_TEST) || defined(WRITE_EPD_IMAGE)
 #define EPD_TEST_IMAGE_DATA

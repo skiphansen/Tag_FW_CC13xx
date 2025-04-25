@@ -15,7 +15,7 @@ void InitLogging(void);
 // ELOG always logs
 #define ELOG(format, ...) _LOG("%s#%d: " format,__FUNCTION__,__LINE__,## __VA_ARGS__)
 
-#ifdef DEBUG_LOGGING
+#if DEBUG_LOGGING != 0
    void DumpHex(void *AdrIn,int Len);
    #define LOG(format, ... ) _LOG("%s: " format,__FUNCTION__,## __VA_ARGS__)
    #define LOG_RAW(format, ... ) _LOG(format,## __VA_ARGS__)
