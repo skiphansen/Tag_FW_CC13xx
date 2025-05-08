@@ -1,7 +1,7 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-#include <ti/drivers/NVS.h>
+#include "cc13xx.h"
 
 //#define EPD_TEST
 //#define EPD_TEST_BACKGROUND_WHITE
@@ -11,7 +11,7 @@
 // #define NVS_TEST
 // #define NVS_TEST_READBACK_ONLY
 // #define WRITE_EPD_IMAGE
-#define SPI_TEST
+// #define SPI_TEST
 
 #define DEBUG_MAX_SLEEP    5000
 // version number (
@@ -24,9 +24,10 @@
 
 #if defined(NVS_DUMP) || defined(NVS_TEST) || defined(WRITE_EPD_IMAGE)
 #define ENABLE_NVS
+#include <ti/drivers/NVS.h>
+NVS_Handle gNvs;
 #endif
 
-NVS_Handle gNvs;
 
 #define TEMP_BUF_SIZE   4096
 extern uint8_t gTempBuf[TEMP_BUF_SIZE];

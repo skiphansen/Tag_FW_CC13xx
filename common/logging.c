@@ -1,19 +1,25 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <ti/drivers/UART.h>
-#include "Board.h"
 #include "logging.h"
 
 #if defined(DeviceFamily_CC13X0)
+#include <ti/drivers/UART.h>
+#include "Board.h"
 UART_Handle gDebugUart;
 #endif
 
+#if defined(DeviceFamily_CC13X1)
+#include <ti/drivers/UART2.h>
+#include "ti_drivers_config.h"
+UART2_Handle gDebugUart;
+#endif
+
+
+#if defined(DeviceFamily_CC13X0)
 void InitLogging()
 {
-#if defined(DeviceFamily_CC13X0)
    UART_Params uartParams;
-#endif
 
    UART_init();
    /* Create a UART with data processing off. */
@@ -24,14 +30,31 @@ void InitLogging()
    uartParams.readEcho = UART_ECHO_OFF;
    uartParams.baudRate = 921600;
 
-#if defined(DeviceFamily_CC13X0)
    gDebugUart = UART_open(Board_UART0, &uartParams);
-#endif
    if(gDebugUart == NULL) {
        /* UART_open() failed */
        while (1);
    }
 }
+#endif
+
+#if defined(DeviceFamily_CC13X1)
+void InitLogging()
+{
+    UART2_Params uartParams;
+    UART2_Handle uart;
+
+    UART2_Params_init(&uartParams);
+    uartParams.baudRate = 921600;
+    gDebugUart = UART2_open(DEBUG_UART,&uartParams);
+
+    if(gDebugUart == NULL) {
+    // UART2_open() failed
+        while(1) {
+        }
+    }
+}
+#endif
 
 #if SERIAL_LOG == 1
 int LogPrintf(char *fmt, ...)
@@ -41,14 +64,20 @@ int LogPrintf(char *fmt, ...)
     char  Temp[120];
 
     int Len = vsnprintf(Temp,sizeof(Temp),fmt,args);
+#if defined(DeviceFamily_CC13X0)
     UART_write(gDebugUart,Temp,Len);
+#endif
+
+#if defined(DeviceFamily_CC13X1)
+    UART2_write(gDebugUart,Temp,Len,NULL);
+#endif
 
     return Len;
 }
-
 #endif   // SERIAL_LOG
 
 #if 1
+// Debugging version
 void DumpHex(void *AdrIn,int Len)
 {
    unsigned char *Adr = (unsigned char *) AdrIn;
@@ -80,7 +109,7 @@ void DumpHex(void *AdrIn,int Len)
    }
 }
 #else
-// Source code version
+// version to allow hex dumps to be copied to source files easily
 void DumpHex(void *AdrIn,int Len)
 {
    unsigned char *Adr = (unsigned char *) AdrIn;

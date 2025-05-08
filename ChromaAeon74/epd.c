@@ -453,7 +453,7 @@ void drawImageAtAddress(uint32_t addr, uint8_t lut)
       gBlackPass = false;
       Epd_SendCommand(0x13);
       DoPass();
-      eepromPowerDown();
+      eepromPower(0);
       drawWithSleep();
       Epd_Sleep();
       LOG("Drawing finished @ %u\n",clock_time());

@@ -3,6 +3,7 @@
 
 void InitLogging(void);
 #if SERIAL_LOG == 1
+   void DumpHex(void *AdrIn,int Len);
    int LogPrintf(char *fmt, ...);
    #define _LOG(format, ...) LogPrintf(format,## __VA_ARGS__)
 #else
@@ -15,8 +16,7 @@ void InitLogging(void);
 // ELOG always logs
 #define ELOG(format, ...) _LOG("%s#%d: " format,__FUNCTION__,__LINE__,## __VA_ARGS__)
 
-#if DEBUG_LOGGING != 0
-   void DumpHex(void *AdrIn,int Len);
+#if DEBUG_LOG != 0
    #define LOG(format, ... ) _LOG("%s: " format,__FUNCTION__,## __VA_ARGS__)
    #define LOG_RAW(format, ... ) _LOG(format,## __VA_ARGS__)
    #define DUMP_HEX(x,y) DumpHex(x,y)
@@ -26,7 +26,7 @@ void InitLogging(void);
    #define DUMP_HEX(x,y)
 #endif   // DEBUG_LOGGING
 
-#ifdef VERBOSE_DEUG_LOGGING
+#if VERBOSE_LOG == 1
    #define VLOG(format, ... ) _LOG("%u %s: " format,clock_time(),__FUNCTION__,## __VA_ARGS__)
    #define VLOG_RAW(format, ... ) _LOG(format,## __VA_ARGS__)
    #define VDUMP_HEX(x,y) DumpHex(x,y)

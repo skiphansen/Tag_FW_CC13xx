@@ -3,17 +3,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
-bool eepromRead(uint32_t addr,void *dst,uint32_t len);
-bool eepromWrite(uint32_t addr,void *src, uint32_t len);
-bool eepromErase(uint32_t addr, uint32_t len);
-bool eepromPowerDown(void);
-bool eepromInit(void);
-
-uint32_t eepromGetSize(void);
+#include "board.h"
 
 #define EEPROM_IMG_VALID				(0x494d4721UL)
-#include "board.h"
 
 struct EepromImageHeader {				//each image space is 0x17000 bytes, we have space for ten of them
 	uint64_t version;
@@ -26,6 +18,12 @@ struct EepromImageHeader {				//each image space is 0x17000 bytes, we have space
 	//we pre-erase so progress can be calculated by finding the first non-0xff byte
 };
 
-
+bool eepromRead(uint32_t addr,void *dst,uint32_t len);
+bool eepromWrite(uint32_t addr,void *src, uint32_t len);
+bool eepromErase(uint32_t addr, uint32_t len);
+bool eepromPower(bool bPowerUp);
+bool eepromGetSFDP(void *pDst,uint32_t len);
+bool eepromGetID(void *pDst);
+uint32_t eepromGetSize(void);
 
 #endif

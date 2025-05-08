@@ -35,7 +35,6 @@
 #include <stdio.h>
 
 /* Driver Header files */
-#include <ti/display/Display.h>
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/UART2.h>
 #include <ti/drivers/dpl/ClockP.h>
@@ -55,6 +54,7 @@
 #include "oepl-definitions.h"
 #include "powermgt.h"
 #include "drawing.h"
+#include "eeprom.h"
 #include "logging.h"
 
 uint8_t wakeUpReason = WAKEUP_REASON_FIRSTBOOT;
@@ -67,40 +67,57 @@ uint8_t capabilities;
 
 uint8_t gTempBuf[TEMP_BUF_SIZE];
 
-NVS_Handle gNvs;
 
 void InitSN(void);
 uint8_t detectAP(const uint8_t channel);
 uint8_t channelSelect(uint8_t rounds);
-bool eepromInit(void);
 void GetTempAndBattV(void);
 
 void *mainThread(void *arg0)
 {
    InitLogging();
-   LOG("ChromaAeon74 Ver %d compiled " __DATE__ " " __TIME__ "\n",FW_VERSION);
+   ALOG("ChromaAeon74 Ver %d compiled " __DATE__ " " __TIME__ "\n",FW_VERSION);
 
    InitSN();
-   SpiTest();
-   NVS_init();
-   eepromInit();
+#if 0
+   do {
+      if(eepromRead(0,gTempBuf,128)) {
+         ELOG("eepromRead failed\n");
+         break;
+      }
+      LOG("First read:\n");
+      DUMP_HEX(gTempBuf,128);
 
-// Run any test code that is enabled
-   NvrDump();
-   NvrTest();
-   EpdTest();
-   WriteEpdImage();
+      if(eepromErase(0,128)) {
+         LOG("eepromErase failed\n");
+         break;
+      }
+      if(eepromRead(0,gTempBuf,128)) {
+         ELOG("eepromRead failed\n");
+         break;
+      }
+      LOG("After erase :\n");
+      DUMP_HEX(gTempBuf,128);
+
+      strcpy((char *) gTempBuf,"This is a test and only a test");
+
+      if(eepromWrite(0,gTempBuf,strlen((char *)gTempBuf))) {
+         LOG("eepromWrite failed\n");
+         break;
+      }
+      if(eepromRead(0,gTempBuf,128)) {
+         ELOG("eepromRead failed\n");
+         break;
+      }
+      LOG("After write:\n");
+      DUMP_HEX(gTempBuf,128);
+   } while(false);
+   while(true);
+#endif
+
    if(radioInit()) {
       LOG("radioInit failed\n");
    }
-   NVS_close(gNvs);
-   gNvs = NULL;
-
-#if 0
-   drawImageAtAddress(0x90000,0);
-   wdt10s();
-   while(true);
-#endif
 
    initializeProto();
    currentChannel = channelSelect(1);
@@ -334,127 +351,6 @@ void drawOnOffline(uint8_t state)
    LOG("State %d\n",state);
 }
 
-bool eepromInit()
-{
-   NVS_Params nvsParams;
-   bool bRet = false;   // Assume the best
-
-   if(gNvs == NULL) {
-      NVS_Params_init(&nvsParams);
-
-      gNvs = NVS_open(CONFIG_NVS_FLASH, &nvsParams);
-      if(gNvs == NULL) {
-         LOG("NVS_open() failed\n");
-         bRet = true;
-      }
-   }
-   return bRet;
-}
-
-uint32_t eepromGetSize(void)
-{
-   return EEPROM_SIZE;
-}
-
-bool eepromRead(uint32_t addr,void *pDst,uint32_t len)
-{
-   int_fast16_t Err;
-   bool bRet = true; // assume the worse
-
-   LOG("read 0x%x Len: %d\n", addr, len);
-   do {
-      if((addr + len) > EEPROM_SIZE) {
-         ELOG("Invalid addr 0x%x\n",addr);
-         break;
-      }
-      if(gNvs == NULL && eepromInit()) {
-         break;
-      }
-      Err = NVS_read(gNvs,addr,pDst,len);
-      if(Err != NVS_STATUS_SUCCESS) {
-         LOG("NVS_read failed %d\n",Err);
-         break;
-      }
-      bRet = false;
-   } while(false);
-
-   return bRet;
-}
-
-bool eepromWrite(uint32_t addr,void *pSrc,uint32_t len)
-{
-   int_fast16_t Err;
-   bool bRet = true; // assume the worse
-
-   LOG("write 0x%x Len: %d\n", addr, len);
-   do {
-      if((addr + len) > EEPROM_SIZE) {
-         ELOG("Invalid addr 0x%x\n",addr);
-         break;
-      }
-      if(gNvs == NULL && eepromInit()) {
-         break;
-      }
-      Err = NVS_write(gNvs,addr,pSrc,len,0);
-      if(Err != NVS_STATUS_SUCCESS) {
-         LOG("NVS_write failed %d\n",Err);
-         break;
-      }
-      bRet = false;
-   } while(false);
-
-   return bRet;
-}
-
-bool eepromErase(uint32_t addr,uint32_t len)
-{
-   int_fast16_t Err;
-   int NumSectors = len / EEPROM_ERZ_SECTOR_SZ;
-   bool bRet = true; // assume the worse
-
-   LOG("erase 0x%x Len: %d\n",addr,len);
-   do {
-      if((addr % EEPROM_ERZ_SECTOR_SZ) != 0 ||
-          addr > (EEPROM_SIZE - EEPROM_ERZ_SECTOR_SZ)) 
-      {
-         ELOG("Invalid addr 0x%x\n",addr);
-         break;
-      }
-      if(gNvs == NULL && eepromInit()) {
-         break;
-      }
-
-      if(NumSectors % EEPROM_ERZ_SECTOR_SZ != 0) {
-         NumSectors++;
-      }
-      LOG("Erasing %d sectors\n",NumSectors);
-      Err = NVS_erase(gNvs,addr,NumSectors * EEPROM_ERZ_SECTOR_SZ);
-      if(Err != NVS_STATUS_SUCCESS) {
-         LOG("NVS_erase failed %d\n",Err);
-         break;
-      }
-      bRet = false;
-   } while(false);
-
-   return bRet;
-}
-
-bool eepromPowerDown()
-{
-   if(gNvs != NULL) {
-      NVS_close(gNvs);
-      gNvs = NULL;
-   }
-
-   return false;
-}
-
-
-uint16_t get_battery_mv()
-{
-   return 3000;
-}
-
 void wdt10s(void)
 {
 }
@@ -462,7 +358,6 @@ void wdt10s(void)
 void wdt60s(void)
 {
 }
-
 
 void GetTempAndBattV(void)
 {

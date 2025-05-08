@@ -175,92 +175,68 @@ void WriteEpdImage()
 #endif   // WRITE_EPD_IMAGE
 
 #ifdef SPI_TEST
-#include <ti/drivers/SPI.h>
-
-void SpiTest()
+void *controllerThread(void *arg0)
 {
-   SPI_Handle controllerSpi;
-   SPI_Params spiParams;
-   SPI_Transaction transaction;
-   uint32_t i;
-   bool transferOK;
-   int32_t status;
-   int_fast16_t Err;
-   uint8_t Wake_Cmd = 0xab;
-   uint8_t SPDP_CmdBuf[] = {
-      0x5a,    // Cmd
-      0, 0, 0, // daddr
-      0        // dummy
-   };
-   uint8_t SPDP_RxBuf[8];
+    SPI_Handle controllerSpi;
+    SPI_Params spiParams;
+    SPI_Transaction transaction;
+    uint32_t i;
+    bool transferOK;
+    int32_t status;
 
-   LOG("Called\n");
-   SPI_init();
+    /* Open SPI as controller (default) */
+    SPI_Params_init(&spiParams);
+    spiParams.frameFormat = SPI_POL0_PHA1;
+    /* See device-specific technical reference manual for supported speeds */
+    spiParams.bitRate     = 1000000;
+    controllerSpi         = SPI_open(CONFIG_SPI_CONTROLLER, &spiParams);
+    if (controllerSpi == NULL)
+    {
+        LOG("Error initializing controller SPI\n");
+        while (1) {}
+    }
+    else
+    {
+        LOG("Controller SPI initialized\n");
+    }
 
-   memset(SPDP_RxBuf,0xaa,sizeof(SPDP_RxBuf));
-   SPI_Params_init(&spiParams);
-   spiParams.bitRate      = 4000000;
-   spiParams.mode         = SPI_CONTROLLER;
-   spiParams.transferMode = SPI_MODE_BLOCKING;
-   // spiParams.frameFormat = SPI_POL0_PHA1;
-   do {
-      if((controllerSpi = SPI_open(CONFIG_SPI_FLASH,&spiParams)) == NULL) {
-         LOG("Error initializing controller SPI\n");
-         break;
-      }
-      LOG("Controller SPI initialized\n");
-      Err = GPIO_setConfig(CONFIG_GPIO_NVS_FLASH_CS,
-                           GPIO_CFG_OUT_STD | GPIO_CFG_OUT_HIGH);
-      if(Err != GPIO_STATUS_SUCCESS) {
-         LOG("GPIO_setConfig failed %d\n",Err);
-         break;
-      }
 
-   // Wake EEPROM from sleep
-      transaction.count = 1;
-      transaction.txBuf = (void *)&Wake_Cmd;
-      transaction.rxBuf = (void *)SPDP_RxBuf;
+        /* Initialize controller SPI transaction structure */
+        controllerTxBuffer[sizeof(CONTROLLER_MSG) - 1] = (i % 10) + '0';
+        memset((void *)controllerRxBuffer, 0, SPI_MSG_LENGTH);
+        transaction.count = SPI_MSG_LENGTH;
+        transaction.txBuf = (void *)controllerTxBuffer;
+        transaction.rxBuf = (void *)controllerRxBuffer;
 
-       /* Perform SPI transfer */
-      GPIO_write(CONFIG_GPIO_NVS_FLASH_CS_CONST,0);
-      transferOK = SPI_transfer(controllerSpi, &transaction);
-      GPIO_write(CONFIG_GPIO_NVS_FLASH_CS_CONST,1);
-      if(!transferOK) {
-         LOG("SPI_transfer failed:\n");
-         break;
-      }
-      ClockP_usleep(100);
+        /* Toggle user LED, indicating a SPI transfer is in progress */
+        GPIO_toggle(CONFIG_GPIO_LED_1);
 
-      transaction.count = sizeof(SPDP_CmdBuf);
-      transaction.txBuf = (void *)SPDP_CmdBuf;
-      transaction.rxBuf = (void *)SPDP_RxBuf;
+        /* Perform SPI transfer */
+        transferOK = SPI_transfer(controllerSpi, &transaction);
+        if (transferOK)
+        {
+            Display_printf(display, 0, 0, "Controller received: %s", controllerRxBuffer);
+        }
+        else
+        {
+            Display_printf(display, 0, 0, "Unsuccessful controller SPI transfer");
+        }
 
-      LOG("Cmd:\n");
-      DUMP_HEX(SPDP_CmdBuf,sizeof(SPDP_CmdBuf));
+        /* Sleep for a bit before starting the next SPI transfer  */
+        sleep(3);
+    }
 
-    // Send command
-      GPIO_write(CONFIG_GPIO_NVS_FLASH_CS_CONST,0);
-      transferOK = SPI_transfer(controllerSpi, &transaction);
-      if(!transferOK) {
-         LOG("SPI_transfer 1 failed\n");
-         break;
-      }
-    // Read data
-      transaction.count = 8;
-      transaction.txBuf = (void *)SPDP_RxBuf;
-      transaction.rxBuf = (void *)SPDP_RxBuf;
-      transferOK = SPI_transfer(controllerSpi, &transaction);
-      if(!transferOK) {
-         LOG("SPI_transfer 2 failed\n");
-         break;
-      }
-      LOG("Read:\n");
-      DUMP_HEX(SPDP_RxBuf,sizeof(SPDP_RxBuf));
-   } while(false);
+    SPI_close(controllerSpi);
 
-   GPIO_write(CONFIG_GPIO_NVS_FLASH_CS_CONST,1);
-   SPI_close(controllerSpi);
-   LOG("Done\n");
-   while(true);
+    /* Example complete - set pins to a known state */
+    GPIO_disableInt(CONFIG_SPI_PERIPHERAL_READY);
+    GPIO_setConfig(CONFIG_SPI_PERIPHERAL_READY, GPIO_CFG_OUTPUT | GPIO_CFG_OUT_LOW);
+    GPIO_write(CONFIG_SPI_CONTROLLER_READY, 0);
+
+    Display_printf(display, 0, 0, "\nDone");
+
+    return (NULL);
 }
 #endif   // SPI_TEST
+
+

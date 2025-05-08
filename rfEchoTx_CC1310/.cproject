@@ -56,6 +56,7 @@
                                     <listOptionValue value="SUPPORT_PHY_5KBPSSLLR"/>
                                     <listOptionValue value="SERIAL_LOG=1"/>
                                     <listOptionValue value="DEBUG_LOGGING=0"/>
+                                    <listOptionValue value="CC1310_128K"/>
                                 </option>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.SILICON_VERSION.1748721020" superClass="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.SILICON_VERSION" value="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.SILICON_VERSION.7M3" valueType="enumerated"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.CODE_STATE.400732333" superClass="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.CODE_STATE" value="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.CODE_STATE.16" valueType="enumerated"/>
@@ -90,6 +91,9 @@
                             <tool id="com.ti.ccstudio.buildDefinitions.TMS470_18.12.hex.706053793" name="Arm Hex Utility" superClass="com.ti.ccstudio.buildDefinitions.TMS470_18.12.hex"/>
                         </toolChain>
                     </folderInfo>
+                    <sourceEntries>
+                        <entry excluding="common/syncedproto.c|common/RFQueue.c|common/radio.c|common/powermgt.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                    </sourceEntries>
                 </configuration>
             </storageModule>
             <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
