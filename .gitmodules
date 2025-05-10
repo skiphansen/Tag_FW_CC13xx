@@ -4,3 +4,6 @@
 [submodule "uzlib"]
 	path = uzlib
 	url = https://github.com/pfalcon/uzlib
+[submodule "bb_epaper"]
+	path = bb_epaper
+	url = https://github.com/skiphansen/bb_epaper.git

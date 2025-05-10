@@ -73,48 +73,15 @@ uint8_t detectAP(const uint8_t channel);
 uint8_t channelSelect(uint8_t rounds);
 void GetTempAndBattV(void);
 
+void bbTest();
+
 void *mainThread(void *arg0)
 {
    InitLogging();
    ALOG("ChromaAeon74 Ver %d compiled " __DATE__ " " __TIME__ "\n",FW_VERSION);
 
+   bbTest();
    InitSN();
-#if 0
-   do {
-      if(eepromRead(0,gTempBuf,128)) {
-         ELOG("eepromRead failed\n");
-         break;
-      }
-      LOG("First read:\n");
-      DUMP_HEX(gTempBuf,128);
-
-      if(eepromErase(0,128)) {
-         LOG("eepromErase failed\n");
-         break;
-      }
-      if(eepromRead(0,gTempBuf,128)) {
-         ELOG("eepromRead failed\n");
-         break;
-      }
-      LOG("After erase :\n");
-      DUMP_HEX(gTempBuf,128);
-
-      strcpy((char *) gTempBuf,"This is a test and only a test");
-
-      if(eepromWrite(0,gTempBuf,strlen((char *)gTempBuf))) {
-         LOG("eepromWrite failed\n");
-         break;
-      }
-      if(eepromRead(0,gTempBuf,128)) {
-         ELOG("eepromRead failed\n");
-         break;
-      }
-      LOG("After write:\n");
-      DUMP_HEX(gTempBuf,128);
-   } while(false);
-   while(true);
-#endif
-
    if(radioInit()) {
       LOG("radioInit failed\n");
    }

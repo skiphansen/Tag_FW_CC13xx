@@ -25,5 +25,6 @@ void Epd_TurnOnDisplay(void);
 void Epd_ClearBlack(void);
 void Epd_Draw(void);
 void Epd_DrawPattern(void);
+void write9bits(uint16_t data);
 
 #endif // EPD_H

@@ -24,6 +24,11 @@
 			<locationURI>Common</locationURI>
 		</link>
 		<link>
+			<name>bb_epaper</name>
+			<type>2</type>
+			<location>/home/skip/esl/Tag_FW_CC13xx/bb_epaper/src</location>
+		</link>
+		<link>
 			<name>uzlib</name>
 			<type>2</type>
 			<location>/home/skip/esl/Tag_FW_CC13xx/uzlib/src</location>

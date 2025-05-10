@@ -239,4 +239,36 @@ void *controllerThread(void *arg0)
 }
 #endif   // SPI_TEST
 
+#ifdef __cplusplus
+#pragma message ( "undefing __cplusplus" )
+#undef __cplusplus
+#endif
+
+#ifdef __cplusplus
+#pragma message ( "__cplusplus still defined!" )
+#endif
+
+#define  _LINUX_  // make bbe_paper code happy
+#include "bb_epaper.h"
+#include "oepl_io.inl"
+#include "bb_ep.inl"
+#include "bb_ep_gfx.inl"
+
+BBEPDISP bbep; // the main display structure
+
+void bbTest()
+{
+   GPIO_write(PWR_PIN,0);
+   bbepSetPanelType(&bbep,EP75R_800x480); // must set this first
+   bbepInitIO(&bbep,8000000);
+   bbepSetRotation(&bbep,90);
+   bbepFill(&bbep,BBEP_WHITE, 0);
+   bbepFill(&bbep,BBEP_WHITE, 1);
+   bbepWriteString(&bbep,0,0,"bb_epaper on OEPL!",FONT_12x16,BBEP_BLACK);
+   ELOG("Start refresh\n");
+   bbepRefresh(&bbep,REFRESH_FULL);
+   bbepWaitBusy(&bbep);
+   bbepSleep(&bbep,DEEP_SLEEP);
+   LOG("Done\n");
+}
 

@@ -3,6 +3,7 @@
 
 #include <ti/drivers/dpl/ClockP.h>
 
+// clock_time() returns system tick uint32_t 10 microsecond increments
 #define clock_time() ClockP_getSystemTicks()
 #define WaitMs(x) ClockP_usleep(x * 1000)
 
