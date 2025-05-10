@@ -258,13 +258,17 @@ BBEPDISP bbep; // the main display structure
 
 void bbTest()
 {
+   const char Msg[] = "bb_epaper on OEPL!";
+   int x = 400 - (((sizeof(Msg) - 1) * 16) / 2);
+   ELOG("x = %d\n",x);
+
    GPIO_write(PWR_PIN,0);
    bbepSetPanelType(&bbep,EP75R_800x480); // must set this first
    bbepInitIO(&bbep,8000000);
-   bbepSetRotation(&bbep,90);
+//   bbepSetRotation(&bbep,90);
    bbepFill(&bbep,BBEP_WHITE, 0);
    bbepFill(&bbep,BBEP_WHITE, 1);
-   bbepWriteString(&bbep,0,0,"bb_epaper on OEPL!",FONT_12x16,BBEP_BLACK);
+   bbepWriteString(&bbep,x,240,Msg,FONT_16x16,BBEP_BLACK);
    ELOG("Start refresh\n");
    bbepRefresh(&bbep,REFRESH_FULL);
    bbepWaitBusy(&bbep);
