@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include <ti/devices/DeviceFamily.h>
+#include <ti/drivers/GPIO.h>
 
 #include "board.h"
 #include "eeprom.h"
@@ -10,7 +11,8 @@
 #include "proxy_msgs.h"
 #include "logging.h"
 
-#define MAX_FRAME_IO_LEN      120
+// #define COBS_BUF_LEN      120
+#define COBS_BUF_LEN      130
 #define CMD_RESP  0x80
 
 typedef union {
@@ -25,6 +27,7 @@ typedef union {
 } CastUnion;
 
 const char gBuildType[] = BOARD_NAME;
+int gMaxMsgLen;
 
 #if defined(DeviceFamily_CC13X0)
 #include <ti/devices/cc13x0/driverlib/sys_ctrl.h>
@@ -73,8 +76,69 @@ void SerialFrameIO_SendByte(uint8_t TxByte)
 #endif
 
 int gRxMsgLen;
-uint8_t gRxBuf[MAX_FRAME_IO_LEN+3];
-uint8_t gTxBuf[MAX_FRAME_IO_LEN+3];
+uint8_t gRxBuf[COBS_BUF_LEN];
+uint8_t gTxBuf[COBS_BUF_LEN];
+
+void write9bits(uint16_t data) {
+   uint16_t Mask = 0x100;
+
+   while(Mask != 0) {
+      GPIO_write(CONFIG_GPIO_EPD_SDI, (data & Mask) ? 1 : 0);
+      // Write each bit to the SDI pin
+      // Pulse the clock (SCLK)
+      GPIO_write(CONFIG_GPIO_EPD_CLK, 1);   // Clock high
+      GPIO_write(CONFIG_GPIO_EPD_CLK, 0);   // Clock low
+      Mask >>= 1;
+   }
+}
+
+// <CMD_EPD> <Flags> [<CommandBytes> <Command> [<Data>] ...]
+void EpdCmd()
+{
+   int MsgLen = 1;
+   uint8_t Flags = gRxBuf[MsgLen++];
+
+// LOG("Got EpdCmd, gRxMsgLen %d, flags 0x%x\n",gRxMsgLen,Flags);
+
+   if(Flags & EPD_FLG_RESET) {
+   // reset display (active low)
+      GPIO_write(CONFIG_GPIO_EPD_RST,0);
+   }
+   else {
+   // release reset
+      GPIO_write(CONFIG_GPIO_EPD_RST,1);
+   }
+
+   if(Flags & EPD_FLG_ENABLE) {
+   // turn off the eInk power
+      GPIO_write(CONFIG_GPIO_EPD_PWR,1);
+   }
+   else {
+   // turn on the eInk power
+      GPIO_write(CONFIG_GPIO_EPD_PWR,0);
+   }
+
+   if(gRxMsgLen > 2) {
+   // we have data
+      uint8_t CmdBytes = gRxBuf[MsgLen++];
+      if(CmdBytes > 0) {
+         GPIO_write(CONFIG_GPIO_EPD_CS, 0);
+         while(MsgLen < gRxMsgLen) {
+            if(Flags & EPD_FLG_CMD) {
+            // Send command byte
+               Flags &= ~EPD_FLG_CMD;
+               write9bits(gRxBuf[MsgLen++]);
+            }
+            else {
+            // Send Data byte
+               write9bits(0x100 | gRxBuf[MsgLen++]);
+            }
+         }
+      // set nCS high
+         GPIO_write(CONFIG_GPIO_EPD_CS,1);
+      }
+   }
+}
 
 // commands <CmdByte> <command data>
 // respones <CmdByte | 0x80> <Rcode> <response data>
@@ -141,14 +205,14 @@ void HandleMsg()
          break;
 
       case CMD_READ_SFDP:
-         if(eepromGetSFDP(&gTxBuf[2],MAX_FRAME_IO_LEN - 2)) {
+         if(eepromGetSFDP(&gTxBuf[2],gMaxMsgLen - 2)) {
             ELOG("eepromGetSFDP failed\n");
             gTxBuf[1] = CMD_ERR_FAILED;
          }
          else {
             ALOG("Read:\n");
-            DumpHex(&gTxBuf[2],MAX_FRAME_IO_LEN - 2);
-            MsgLen = MAX_FRAME_IO_LEN;
+            DumpHex(&gTxBuf[2],gMaxMsgLen - 2);
+            MsgLen = gMaxMsgLen;
          }
          break;
 
@@ -205,6 +269,27 @@ void HandleMsg()
          LOG("\n");
          break;
 
+      case CMD_EPD:
+         if(gRxMsgLen > 1) {
+            EpdCmd();
+         }
+         else {
+            gTxBuf[1] = CMD_ERR_INVALID_ARG;
+         }
+         break;
+
+      case CMD_PORT_RW:
+      // CMD_PORT_RW <port> <mask> <value>
+         if(uCast0.Bytes[0] == 1 && uCast0.Bytes[1] == 0) {
+         // Reading "port 1"
+            MsgLen = 3;
+            pResponse->Bytes[0] = GPIO_read(CONFIG_GPIO_EPD_BUSY);
+         }
+         else {
+            gTxBuf[1] = CMD_ERR_INVALID_ARG;
+         }
+         break;
+
       default:
          LOG("Unknown command 0x%x ignored\n",gRxBuf[0]);
          gTxBuf[1] = CMD_ERR_UNKNOWN_CMD;
@@ -222,7 +307,7 @@ void Proxy()
    int BytesRx = 0;
    int MsgsRx = 0;
 
-   SerialFrameIO_Init(gRxBuf,sizeof(gRxBuf));
+   gMaxMsgLen = SerialFrameIO_Init(gRxBuf,sizeof(gRxBuf));
 
    while(true) {
       uint8_t Byte;
@@ -231,11 +316,7 @@ void Proxy()
       }
       BytesRx++;
       gRxMsgLen = SerialFrameIO_ParseByte(Byte);
-      if(gRxMsgLen == 0) {
-      // Byte was not consumed, just echo it
-         SerialFrameIO_SendByte(Byte);
-      }
-      else if(gRxMsgLen > 0) {
+      if(gRxMsgLen > 0) {
          MsgsRx++;
          HandleMsg();
       }

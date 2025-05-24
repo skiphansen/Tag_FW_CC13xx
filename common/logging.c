@@ -28,7 +28,7 @@ void InitLogging()
    uartParams.readDataMode = UART_DATA_BINARY;
    uartParams.readReturnMode = UART_RETURN_FULL;
    uartParams.readEcho = UART_ECHO_OFF;
-   uartParams.baudRate = 921600;
+   uartParams.baudRate = 115200;
 
    gDebugUart = UART_open(Board_UART0, &uartParams);
    if(gDebugUart == NULL) {
@@ -45,7 +45,7 @@ void InitLogging()
     UART2_Handle uart;
 
     UART2_Params_init(&uartParams);
-    uartParams.baudRate = 921600;
+    uartParams.baudRate = 115200;
     gDebugUart = UART2_open(DEBUG_UART,&uartParams);
 
     if(gDebugUart == NULL) {
@@ -89,23 +89,23 @@ void DumpHex(void *AdrIn,int Len)
          if((i + j) == Len) {
             break;
          }
-         LOG_RAW("%02x ",Adr[i+j]);
+         _LOG("%02x ",Adr[i+j]);
       }
 
-      LOG_RAW(" ");
+      _LOG(" ");
       for(j = 0; j < 16; j++) {
          if((i + j) == Len) {
             break;
          }
          if(isprint(Adr[i+j])) {
-            LOG_RAW("%c",Adr[i+j]);
+            _LOG("%c",Adr[i+j]);
          }
          else {
-            LOG_RAW(".");
+            _LOG(".");
          }
       }
       i += 16;
-      LOG_RAW("\n");
+      _LOG("\n");
    }
 }
 #else
