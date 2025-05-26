@@ -57,87 +57,20 @@ extern "C" {
 extern const PIN_Config BoardGpioInitTable[];
 
 /* Defines */
-#define CC1310_LAUNCHXL
-
-/* Mapping of pins to board signals using general board aliases
- *      <board signal alias>                  <pin mapping>   <comments>
- */
-
-/* Analog capable DIOs */
-#define CC1310_LAUNCHXL_DIO23_ANALOG          IOID_23
-#define CC1310_LAUNCHXL_DIO24_ANALOG          IOID_24
-#define CC1310_LAUNCHXL_DIO25_ANALOG          IOID_25
-#define CC1310_LAUNCHXL_DIO26_ANALOG          IOID_26
-#define CC1310_LAUNCHXL_DIO27_ANALOG          IOID_27
-#define CC1310_LAUNCHXL_DIO28_ANALOG          IOID_28
-#define CC1310_LAUNCHXL_DIO29_ANALOG          IOID_29
-#define CC1310_LAUNCHXL_DIO30_ANALOG          IOID_30
-
-/* Digital IOs */
-#define CC1310_LAUNCHXL_DIO0                  IOID_0
-#define CC1310_LAUNCHXL_DIO1                  IOID_1
-#define CC1310_LAUNCHXL_DIO12                 IOID_12
-#define CC1310_LAUNCHXL_DIO15                 IOID_15
-#define CC1310_LAUNCHXL_DIO16_TDO             IOID_16
-#define CC1310_LAUNCHXL_DIO17_TDI             IOID_17
-#define CC1310_LAUNCHXL_DIO21                 IOID_21
-#define CC1310_LAUNCHXL_DIO22                 IOID_22
-
-/* Discrete Inputs */
-#define CC1310_LAUNCHXL_PIN_BTN1              IOID_13
-#define CC1310_LAUNCHXL_PIN_BTN2              IOID_14
-
-/* GPIO */
-#define CC1310_LAUNCHXL_GPIO_LED_ON           1
-#define CC1310_LAUNCHXL_GPIO_LED_OFF          0
-
-/* I2C */
-#define CC1310_LAUNCHXL_I2C0_SCL0             IOID_4
-#define CC1310_LAUNCHXL_I2C0_SDA0             IOID_5
-
-/* I2S */
-#define CC1310_LAUNCHXL_I2S_ADO               IOID_25
-#define CC1310_LAUNCHXL_I2S_ADI               IOID_26
-#define CC1310_LAUNCHXL_I2S_BCLK              IOID_27
-#define CC1310_LAUNCHXL_I2S_MCLK              PIN_UNASSIGNED
-#define CC1310_LAUNCHXL_I2S_WCLK              IOID_28
-
-/* LEDs */
-#define CC1310_LAUNCHXL_PIN_LED_ON            1
-#define CC1310_LAUNCHXL_PIN_LED_OFF           0
-#define CC1310_LAUNCHXL_PIN_RLED              PIN_UNASSIGNED
-#define CC1310_LAUNCHXL_PIN_GLED              PIN_UNASSIGNED
-
-/* PWM Outputs */
-#define CC1310_LAUNCHXL_PWMPIN0               CC1310_LAUNCHXL_PIN_RLED
-#define CC1310_LAUNCHXL_PWMPIN1               CC1310_LAUNCHXL_PIN_GLED
-#define CC1310_LAUNCHXL_PWMPIN2               PIN_UNASSIGNED
-#define CC1310_LAUNCHXL_PWMPIN3               PIN_UNASSIGNED
-#define CC1310_LAUNCHXL_PWMPIN4               PIN_UNASSIGNED
-#define CC1310_LAUNCHXL_PWMPIN5               PIN_UNASSIGNED
-#define CC1310_LAUNCHXL_PWMPIN6               PIN_UNASSIGNED
-#define CC1310_LAUNCHXL_PWMPIN7               PIN_UNASSIGNED
-
 /* SPI */
-#define CC1310_LAUNCHXL_SPI_FLASH_CS          IOID_11 // modified for Chroma 21
-#define CC1310_LAUNCHXL_FLASH_CS_ON           0
-#define CC1310_LAUNCHXL_FLASH_CS_OFF          1
+#define CHROMA_SPI_FLASH_CS          IOID_11 // modified for Chroma 21
 
 /* SPI Board */
-#define CC1310_LAUNCHXL_SPI0_MISO             IOID_10          /* RF1.20 */
-#define CC1310_LAUNCHXL_SPI0_MOSI             IOID_8          /* modified for Chroma 21 */
-#define CC1310_LAUNCHXL_SPI0_CLK              IOID_9         /* RF1.16 */
-#define CC1310_LAUNCHXL_SPI0_CSN              PIN_UNASSIGNED
-#define CC1310_LAUNCHXL_SPI1_MISO             PIN_UNASSIGNED
-#define CC1310_LAUNCHXL_SPI1_MOSI             PIN_UNASSIGNED
-#define CC1310_LAUNCHXL_SPI1_CLK              PIN_UNASSIGNED
-#define CC1310_LAUNCHXL_SPI1_CSN              PIN_UNASSIGNED
+#define CHROMA_SPI0_MISO             IOID_10          /* RF1.20 */
+#define CHROMA_SPI0_MOSI             IOID_8          /* modified for Chroma 21 */
+#define CHROMA_SPI0_CLK              IOID_9         /* RF1.16 */
+#define CHROMA_SPI0_CSN              PIN_UNASSIGNED
 
 /* UART Board */
-#define CC1310_LAUNCHXL_UART_RX               IOID_6          /* RXD modified for Chroma21 */
-#define CC1310_LAUNCHXL_UART_TX               IOID_7          /* TXD modified for Chroma21 */
-#define CC1310_LAUNCHXL_UART_CTS              PIN_UNASSIGNED   /* CTS */
-#define CC1310_LAUNCHXL_UART_RTS              PIN_UNASSIGNED   /* RTS */
+#define CHROMA_UART_RX               IOID_6          /* RXD modified for Chroma21 */
+#define CHROMA_UART_TX               IOID_7          /* TXD modified for Chroma21 */
+#define CHROMA_UART_CTS              PIN_UNASSIGNED   /* CTS */
+#define CHROMA_UART_RTS              PIN_UNASSIGNED   /* RTS */
 
 /*!
  *  @brief  Initialize the general board specific settings
@@ -175,14 +108,6 @@ typedef enum CC1310_LAUNCHXL_ADCBufName {
  *  @brief  Enum of ADCBuf channels
  */
 typedef enum CC1310_LAUNCHXL_ADCBuf0ChannelName {
-    CC1310_LAUNCHXL_ADCBUF0CHANNEL0 = 0,
-    CC1310_LAUNCHXL_ADCBUF0CHANNEL1,
-    CC1310_LAUNCHXL_ADCBUF0CHANNEL2,
-    CC1310_LAUNCHXL_ADCBUF0CHANNEL3,
-    CC1310_LAUNCHXL_ADCBUF0CHANNEL4,
-    CC1310_LAUNCHXL_ADCBUF0CHANNEL5,
-    CC1310_LAUNCHXL_ADCBUF0CHANNEL6,
-    CC1310_LAUNCHXL_ADCBUF0CHANNEL7,
     CC1310_LAUNCHXL_ADCBUF0CHANNELVDDS,
     CC1310_LAUNCHXL_ADCBUF0CHANNELDCOUPL,
     CC1310_LAUNCHXL_ADCBUF0CHANNELVSS,
@@ -195,14 +120,6 @@ typedef enum CC1310_LAUNCHXL_ADCBuf0ChannelName {
  *  @brief  Enum of ADCs
  */
 typedef enum CC1310_LAUNCHXL_ADCName {
-    CC1310_LAUNCHXL_ADC0 = 0,
-    CC1310_LAUNCHXL_ADC1,
-    CC1310_LAUNCHXL_ADC2,
-    CC1310_LAUNCHXL_ADC3,
-    CC1310_LAUNCHXL_ADC4,
-    CC1310_LAUNCHXL_ADC5,
-    CC1310_LAUNCHXL_ADC6,
-    CC1310_LAUNCHXL_ADC7,
     CC1310_LAUNCHXL_ADCDCOUPL,
     CC1310_LAUNCHXL_ADCVSS,
     CC1310_LAUNCHXL_ADCVDDS,
@@ -291,24 +208,19 @@ typedef enum CC1310_LAUNCHXL_TRNGName {
 } CC1310_LAUNCHXL_TRNGName;
 
 /*!
- *  @def    CC1310_LAUNCHXL_GPIOName
+ *  @def    CC1310_CHROMAL_GPIOName
  *  @brief  Enum of GPIO names
  */
-typedef enum CC1310_LAUNCHXL_GPIOName {
-    CC1310_LAUNCHXL_GPIO_S1 = 0,
-    CC1310_LAUNCHXL_GPIO_S2,
-    CC1310_LAUNCHXL_SPI_MASTER_READY,
-    CC1310_LAUNCHXL_SPI_SLAVE_READY,
-    CC1310_LAUNCHXL_GPIO_LED_GREEN,
-    CC1310_LAUNCHXL_GPIO_LED_RED,
-    CC1310_LAUNCHXL_GPIO_TMP116_EN,
-    CC1310_LAUNCHXL_GPIO_SPI_FLASH_CS,
-    CC1310_LAUNCHXL_SDSPI_CS,
-    CC1310_LAUNCHXL_GPIO_LCD_CS,
-    CC1310_LAUNCHXL_GPIO_LCD_POWER,
-    CC1310_LAUNCHXL_GPIO_LCD_ENABLE,
+typedef enum CC1310_CHROMAL_GPIOName {
+    CONFIG_GPIO_EPD_BUSY,
+    /* Output pins */
+    CONFIG_GPIO_EPD_PWR,
+    CONFIG_GPIO_EPD_CS,
+    CONFIG_GPIO_EPD_CLK,
+    CONFIG_GPIO_EPD_SDI,
+    CONFIG_GPIO_EPD_RST,
     CC1310_LAUNCHXL_GPIOCOUNT
-} CC1310_LAUNCHXL_GPIOName;
+} CC1310_CHROMAL_GPIOName;
 
 /*!
  *  @def    CC1310_LAUNCHXL_GPTimerName
@@ -345,8 +257,6 @@ typedef enum CC1310_LAUNCHXL_GPTimers {
  *  @brief  Enum of I2C names
  */
 typedef enum CC1310_LAUNCHXL_I2CName {
-    CC1310_LAUNCHXL_I2C0 = 0,
-
     CC1310_LAUNCHXL_I2CCOUNT
 } CC1310_LAUNCHXL_I2CName;
 
@@ -407,21 +317,19 @@ typedef enum CC1310_LAUNCHXL_SDName {
  *  @brief  Enum of SPI names
  */
 typedef enum CC1310_LAUNCHXL_SPIName {
-    CC1310_LAUNCHXL_SPI0 = 0,
-    CC1310_LAUNCHXL_SPI1,
-
+    CHROMA_SPI0 = 0,
     CC1310_LAUNCHXL_SPICOUNT
 } CC1310_LAUNCHXL_SPIName;
 
 /*!
- *  @def    CC1310_LAUNCHXL_UARTName
+ *  @def    CHROMA_UARTName
  *  @brief  Enum of UARTs
  */
-typedef enum CC1310_LAUNCHXL_UARTName {
-    CC1310_LAUNCHXL_UART0 = 0,
+typedef enum CHROMA_UARTName {
+    CHROMA_UART0 = 0,
 
-    CC1310_LAUNCHXL_UARTCOUNT
-} CC1310_LAUNCHXL_UARTName;
+    CHROMA_UARTCOUNT
+} CHROMA_UARTName;
 
 /*!
  *  @def    CC1310_LAUNCHXL_UDMAName

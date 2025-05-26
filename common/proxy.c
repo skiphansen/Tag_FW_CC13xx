@@ -244,6 +244,10 @@ void HandleMsg()
          break;
 
       case CMD_RESET:
+         while(true) {
+            GPIO_write(CONFIG_GPIO_EPD_RST,0);
+            GPIO_write(CONFIG_GPIO_EPD_RST,1);
+         }
          SysCtrlSystemReset();
          break;
 

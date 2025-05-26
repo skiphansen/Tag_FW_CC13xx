@@ -48,6 +48,16 @@ extern "C" {
 #define Board_shutDownExtFlash() CC1310_LAUNCHXL_shutDownExtFlash()
 #define Board_wakeUpExtFlash() CC1310_LAUNCHXL_wakeUpExtFlash()
 
+#if 0
+#define CONFIG_GPIO_EPD_PWR      IOID_0
+#define CONFIG_GPIO_EPD_BUSY     IOID_1
+#define CONFIG_GPIO_EPD_CS       IOID_2
+#define CONFIG_GPIO_EPD_CLK      IOID_3
+#define CONFIG_GPIO_EPD_SDI      IOID_4
+#define CONFIG_GPIO_EPD_RST      IOID_10
+#endif
+
+
 /* These #defines allow us to reuse TI-RTOS across other device families */
 
 #define Board_ADC0              CC1310_LAUNCHXL_ADC0
@@ -141,7 +151,7 @@ extern "C" {
 #define Board_SPI_MASTER_READY  CC1310_LAUNCHXL_SPI_MASTER_READY
 #define Board_SPI_SLAVE_READY   CC1310_LAUNCHXL_SPI_SLAVE_READY
 
-#define Board_UART0             CC1310_LAUNCHXL_UART0
+#define Board_UART0             CHROMA_UART0
 
 #define Board_WATCHDOG0         CC1310_LAUNCHXL_WATCHDOG0
 
