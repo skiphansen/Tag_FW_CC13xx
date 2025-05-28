@@ -138,10 +138,6 @@ bool eepromReadInternal(uint8_t Cmd,uint32_t addr,void *pDst,uint32_t len)
    bool bRet = true; // assume the worse
 
    do {
-      if((addr + len) > EEPROM_SIZE) {
-         ELOG("Invalid addr 0x%x\n",addr);
-         break;
-      }
       if(gSpi == NULL && eepromPower(true)) {
          break;
       }

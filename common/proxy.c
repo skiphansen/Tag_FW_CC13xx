@@ -11,8 +11,7 @@
 #include "proxy_msgs.h"
 #include "logging.h"
 
-// #define COBS_BUF_LEN      120
-#define COBS_BUF_LEN      130
+#define COBS_BUF_LEN      120
 #define CMD_RESP  0x80
 
 typedef union {
@@ -210,8 +209,8 @@ void HandleMsg()
             gTxBuf[1] = CMD_ERR_FAILED;
          }
          else {
-            ALOG("Read:\n");
-            DumpHex(&gTxBuf[2],gMaxMsgLen - 2);
+            VLOG("Read:\n");
+            VDUMP_HEX(&gTxBuf[2],gMaxMsgLen - 2);
             MsgLen = gMaxMsgLen;
          }
          break;
