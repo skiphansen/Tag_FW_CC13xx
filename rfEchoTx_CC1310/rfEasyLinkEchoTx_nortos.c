@@ -66,8 +66,10 @@
 #define RFEASYLINKECHO_PAYLOAD_LENGTH     30
 
 // #define SPI_TEST
-#define CHROMA_PROXY
+// #define CHROMA_PROXY
+#define BB_TEST
 
+void bbTest(void);
 
 
 static uint8_t CreatePingPacket(void);
@@ -205,6 +207,11 @@ void *mainThread(void *arg0)
 
 #ifdef CHROMA_PROXY
     Proxy();
+#endif
+
+#ifdef BB_TEST
+    bbTest();
+    while(true);
 #endif
 
 #ifdef RFEASYLINKECHO_ASYNC
@@ -411,4 +418,88 @@ static uint8_t CreatePingPacket()
 
     return (uint8_t) sizeof(*txframe) + 3;   // NB: Tx len includes CRC
 }
+
+void DumpRstPwr()
+{
+   ELOG("CONFIG_GPIO_EPD_PWR %d\n",GPIO_read(CONFIG_GPIO_EPD_PWR));
+   ELOG("CONFIG_GPIO_EPD_RST %d\n",GPIO_read(CONFIG_GPIO_EPD_RST));
+   ELOG("CONFIG_GPIO_EPD_CS %d\n",GPIO_read(CONFIG_GPIO_EPD_CS));
+   ELOG("CONFIG_GPIO_EPD_CLK %d\n",GPIO_read(CONFIG_GPIO_EPD_CLK));
+}
+
+#ifdef BB_TEST
+#define _BB_EPAPER_CPP_ // needed for u8Cache
+#include "bb_epaper.h"
+#include "oepl_io.inl"
+#include "bb_ep.inl"
+#include "bb_ep_gfx.inl"
+
+BBEPDISP bbep; // the main display structure
+
+
+void bbTest()
+{
+   const char Msg[] = "bb_epaper on OEPL!";
+   int x = 400 - (((sizeof(Msg) - 1) * 16) / 2);
+   int Err;
+   int Line = 0;
+
+   do {
+      ELOG("Called\n");
+      DumpRstPwr();
+      GPIO_write(CONFIG_GPIO_EPD_PWR,0);
+      GPIO_write(CONFIG_GPIO_EPD_RST,0);
+      GPIO_write(CONFIG_GPIO_EPD_CLK,0);
+      GPIO_write(CONFIG_GPIO_EPD_CS,1);
+      ELOG("After init\n");
+      delay(10);
+      DumpRstPwr();
+      GPIO_write(CONFIG_GPIO_EPD_RST,1);
+
+      if((Err = bbepSetPanelType(&bbep,EP75R_800x480))) {
+         Line = __LINE__;
+         break;
+      }
+      bbepInitIO(&bbep,8000000);
+   //   bbepSetRotation(&bbep,90);
+      ELOG("After bbepInitIO \n");
+      DumpRstPwr();
+      ELOG("bbepFill 0\n");
+      bbepFill(&bbep,BBEP_WHITE, 0);
+      ELOG("After bbepFill\n");
+      DumpRstPwr();
+      ELOG("bbepFill 1\n");
+      bbepFill(&bbep,BBEP_WHITE, 1);
+      ELOG("After bbepFill 1\n");
+      DumpRstPwr();
+
+      ELOG("bbepWriteString\n");
+      if((Err = bbepWriteString(&bbep,x,240,Msg,FONT_16x16,BBEP_BLACK,BBEP_WHITE))) {
+         Line = __LINE__;
+         break;
+      }
+      ELOG("After bbepWriteString\n");
+      DumpRstPwr();
+      ELOG("Start refresh\n");
+      if((Err = bbepRefresh(&bbep,REFRESH_FULL))) {
+         Line = __LINE__;
+         break;
+      }
+      ELOG("After bbepRefresh\n");
+      DumpRstPwr();
+      bbepWaitBusy(&bbep);
+      ELOG("After bbepWaitBusy\n");
+      DumpRstPwr();
+      ELOG("Put display to sleep\n");
+      bbepSleep(&bbep,DEEP_SLEEP);
+      GPIO_write(CONFIG_GPIO_EPD_PWR,1);
+      ELOG("Done\n");
+      DumpRstPwr();
+   } while(false);
+
+   if(Line != 0) {
+      ELOG("Failed on line %d Err %d\n",Line,Err);
+   }
+}
+#endif   // BB_TEST
 

@@ -48,15 +48,6 @@ extern "C" {
 #define Board_shutDownExtFlash() CC1310_LAUNCHXL_shutDownExtFlash()
 #define Board_wakeUpExtFlash() CC1310_LAUNCHXL_wakeUpExtFlash()
 
-#if 0
-#define CONFIG_GPIO_EPD_PWR      IOID_0
-#define CONFIG_GPIO_EPD_BUSY     IOID_1
-#define CONFIG_GPIO_EPD_CS       IOID_2
-#define CONFIG_GPIO_EPD_CLK      IOID_3
-#define CONFIG_GPIO_EPD_SDI      IOID_4
-#define CONFIG_GPIO_EPD_RST      IOID_10
-#endif
-
 
 /* These #defines allow us to reuse TI-RTOS across other device families */
 

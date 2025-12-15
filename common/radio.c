@@ -154,7 +154,7 @@ uint8_t *commsRxUnencrypted(uint32_t Wait4Ms)
       mLastRSSI = gRxStats.lastRssi;
       mLastLqi = (MAC_SPEC_ED_MAX * (mLastRSSI - ED_RF_POWER_MIN_DBM)) 
                   / (ED_RF_POWER_MAX_DBM - ED_RF_POWER_MIN_DBM);
-      LOG("Received %d byte packet, LQI %d, Rssi %d:\n",
+      VLOG("Received %d byte packet, LQI %d, Rssi %d:\n",
           gRxPacketLen,mLastLqi,mLastRSSI);
       pRet = &gRxDataQueue[0].pData[1];
       VDUMP_HEX(pRet,gRxPacketLen);

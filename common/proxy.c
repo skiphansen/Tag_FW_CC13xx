@@ -11,7 +11,7 @@
 #include "proxy_msgs.h"
 #include "logging.h"
 
-#define COBS_BUF_LEN      120
+#define COBS_BUF_LEN      130
 #define CMD_RESP  0x80
 
 typedef union {
@@ -243,10 +243,8 @@ void HandleMsg()
          break;
 
       case CMD_RESET:
-         while(true) {
-            GPIO_write(CONFIG_GPIO_EPD_RST,0);
-            GPIO_write(CONFIG_GPIO_EPD_RST,1);
-         }
+         GPIO_write(CONFIG_GPIO_EPD_RST,0);
+         GPIO_write(CONFIG_GPIO_EPD_RST,1);
          SysCtrlSystemReset();
          break;
 

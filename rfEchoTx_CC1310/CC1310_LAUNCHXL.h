@@ -65,6 +65,12 @@ extern const PIN_Config BoardGpioInitTable[];
 #define CHROMA_SPI0_MOSI             IOID_8          /* modified for Chroma 21 */
 #define CHROMA_SPI0_CLK              IOID_9         /* RF1.16 */
 #define CHROMA_SPI0_CSN              PIN_UNASSIGNED
+#define CHROMA_EPD_BUSY              IOID_1
+#define CHROMA_EPD_PWR               IOID_0
+#define CHROMA_EPD_CS                IOID_2
+#define CHROMA_EPD_CLK               IOID_3
+#define CHROMA_EPD_SDI               IOID_4
+#define CHROMA_EPD_RST               IOID_5
 
 /* UART Board */
 #define CHROMA_UART_RX               IOID_6          /* RXD modified for Chroma21 */

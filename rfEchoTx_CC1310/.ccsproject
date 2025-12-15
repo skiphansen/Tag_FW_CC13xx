@@ -10,7 +10,7 @@
 	<ignoreDefaultDeviceSettings value="true"/>
 	<ignoreDefaultCCSSettings value="true"/>
 	<templateProperties value="id=rfEasyLinkEchoTx_CC1310_LAUNCHXL_nortos_ccs.projectspec.rfEasyLinkEchoTx_CC1310_LAUNCHXL_nortos_ccs,buildProfile=release,isHybrid=true"/>
-	<activeTargetConfiguration value="targetConfigs/CC1310F128.ccxml"/>
+	<activeTargetConfiguration value="targetConfigs/CC1310F64.ccxml"/>
 	<isTargetConfigurationManual value="false"/>
 	<origin value="/home/skip/ti/simplelink_cc13x0_sdk_4_20_02_07/examples/nortos/CC1310_LAUNCHXL/easylink/rfEasyLinkEchoTx/ccs/rfEasyLinkEchoTx_CC1310_LAUNCHXL_nortos_ccs.projectspec"/>
 	<filesToOpen value=""/>

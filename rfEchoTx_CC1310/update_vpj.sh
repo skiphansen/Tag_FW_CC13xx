@@ -10,7 +10,8 @@ sed -e 's!<F N="../rfEchoTx_CC1310/!<F N="../!g' | \
 sed -e 's!<F N="../syscfg/!<F N="../Debug/syscfg/!g' | \
 sed -e 's!<F N="../\([^.]\)!<F N="../rfEchoTx_CC1310/\1!g' | \
 sed -e 's!<F N="../rfEchoTx_CC1310/shared/\([^.]\)!<F N="../shared/\1!g' | \
-sed -e 's!<F N="../rfEchoTx_CC1310/common/\([^.]\)!<F N="../common/\1!g' \
+sed -e 's!<F N="../rfEchoTx_CC1310/common/\([^.]\)!<F N="../common/\1!g' | \
+sed -e 's!<F N="../rfEchoTx_CC1310/bb_epaper/\([^.]\)!<F N="../bb_epaper/\1!g' \
 > e.xml
 mv e.xml ${VPJ_FILE}
 

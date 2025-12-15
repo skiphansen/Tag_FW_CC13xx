@@ -53,8 +53,10 @@ static void delay(int iTime)
 
 void bbepWriteData(BBEPDISP *pBBEP, uint8_t *pData, int iLen)
 {
+#if 0
    LOG("Writing %d bytes of data:\n",iLen);
    DumpHex(pData,iLen);
+#endif
 
    GPIO_write(CONFIG_GPIO_EPD_CS,0);
    while(iLen--) {
@@ -90,7 +92,6 @@ void bbepWriteCmd(BBEPDISP *pBBEP, uint8_t cmd)
         bbepWakeUp(pBBEP);
         pBBEP->is_awake = 1;
     }
-    LOG("Cmd 0x%02x\n",cmd);
     GPIO_write(CONFIG_GPIO_EPD_CS,0);
     write9bits(cmd);
     GPIO_write(CONFIG_GPIO_EPD_CS,1);

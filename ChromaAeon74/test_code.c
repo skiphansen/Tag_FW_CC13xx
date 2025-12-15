@@ -268,7 +268,7 @@ void bbTest()
 //   bbepSetRotation(&bbep,90);
    bbepFill(&bbep,BBEP_WHITE, 0);
    bbepFill(&bbep,BBEP_WHITE, 1);
-   bbepWriteString(&bbep,x,240,Msg,FONT_16x16,BBEP_BLACK);
+   bbepWriteString(&bbep,x,240,Msg,FONT_16x16,BBEP_BLACK,BBEP_WHITE);
    ELOG("Start refresh\n");
    bbepRefresh(&bbep,REFRESH_FULL);
    bbepWaitBusy(&bbep);
