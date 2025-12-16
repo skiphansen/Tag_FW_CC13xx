@@ -249,6 +249,7 @@ void *controllerThread(void *arg0)
 #endif
 
 #define  _LINUX_  // make bbe_paper code happy
+#define _BB_EPAPER_CPP_ // needed for u8Cache
 #include "bb_epaper.h"
 #include "oepl_io.inl"
 #include "bb_ep.inl"
