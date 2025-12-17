@@ -1,0 +1,36 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "rfEasyLinkEchoTx_CC1310_LAUNCHXL_nortos_ccs",
+            "type": "ccs-debug",
+            "request": "launch",
+            "projectInfo": {
+                "name": "rfEasyLinkEchoTx_CC1310_LAUNCHXL_nortos_ccs",
+                "resourceId": "/rfEasyLinkEchoTx_CC1310_LAUNCHXL_nortos_ccs"
+            }
+        },
+        {
+            "name": "oepl_CC1310",
+            "type": "ccs-debug",
+            "request": "launch",
+            "projectInfo": {
+                "name": "oepl_CC1310",
+                "resourceId": "/oepl_CC1310"
+            },
+            "connections": [
+                {
+                    "name": "Texas Instruments XDS110 USB Debug Probe",
+                    "cores": [
+                        {
+                            "name": "Cortex_M3_0",
+                            "debuggerSettings": {
+                                "data": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n<PropertyValues/>\n"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
