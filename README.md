@@ -8,10 +8,11 @@ So far the following tags are known to be based on CC13xx SOCs
 | Tag | SOC | [bb_epaper_type](https://github.com/skiphansen/bb_epaper) |
 | -| - | - |
 |Chroma 21, SN starting with 'MJ' | CC1310 ||
+|Chroma 21, SN starting with 'LD' | CC1310 ||
 |Chroma 29, SN starting with 'ME' | CC1310 |EP_CHROMA29_CC1310 (38) |
 |Chroma 74H, SN starting with 'MS' | CC1310 ||
 |Chroma Aeon 74, SN starting with 'SR'| CC1311 | EP75R_800x480 (33) |
-|Solum 2.9" EL029D2WRA| ? |
+|Solum 2.9" EL029D2WRA| CC1310-F128 ||
 
 It is very likely that CC13xx based tags exist for the entire Chroma product 
 line.
@@ -72,4 +73,3 @@ for the Chroma Aeon74 and other tags based on the CC1311 for programmer connecti
 
 See this Wiki [page](https://github.com/OpenEPaperLink/OpenEPaperLink/wiki/CC1310-Based-Chroma-Tags#pin-connections)
 for Chroma tags based on the CC1310 for programmer connections.
-
