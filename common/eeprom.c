@@ -7,7 +7,7 @@
 #endif
 
 #include "eeprom.h"
-#include "board.h"
+#include "oepl_board.h"
 #include "logging.h"
 
 #define CMD_PP          0x02
@@ -132,6 +132,8 @@ uint32_t eepromGetSize(void)
    return EEPROM_SIZE;
 }
 
+static void eepromPrvBusyWait(void);
+
 bool eepromReadInternal(uint8_t Cmd,uint32_t addr,void *pDst,uint32_t len)
 {
    SPI_Transaction transaction;
@@ -141,6 +143,10 @@ bool eepromReadInternal(uint8_t Cmd,uint32_t addr,void *pDst,uint32_t len)
       if(gSpi == NULL && eepromPower(true)) {
          break;
       }
+   // eepromWrite() returns while the last page is still being programmed.
+   // A read issued then returns garbage (seen as G5 decode failures: the
+   // decoder alternates source reads with row writes).
+      eepromPrvBusyWait();
 
       if(eepromPrvCmdAddr(Cmd,addr)) {
          break;
@@ -287,7 +293,11 @@ bool eepromErase(uint32_t addr,uint32_t len)
       }
 
       while(NumSectors > 0) {
-
+      // A WREN sent while a page program is still running is ignored, and
+      // so is the erase after it: the first sector of an image slot erased
+      // right after a download kept its old data (seen as corrupted top
+      // rows of a G5 image).
+         eepromPrvBusyWait();
          if(eepromPrvSimpleCmd(CMD_WREN)) {
             break;
          }

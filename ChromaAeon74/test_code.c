@@ -15,7 +15,7 @@
 #include "img.h"
 #include "main.h"
 #include "img.h"
-#include "board.h"
+#include "oepl_board.h"
 #include "logging.h"
 
 #ifdef NVS_DUMP

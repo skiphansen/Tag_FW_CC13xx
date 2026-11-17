@@ -132,7 +132,12 @@ rfc_CMD_PROP_RADIO_DIV_SETUP_t RF_cmdPropRadioDivSetup =
     .config.biasMode = 0x1,
     .config.analogCfgMode = 0x0,
     .config.bNoFsPowerUp = 0x0,
-    .txPower = 0x3E92,
+    // 10 dBm, the CC13x0 868/915 MHz PA table entry (19, 3, 0, 28). The 74H
+    // stock firmware's PA table (flash 0xF198) tops out at this value and
+    // stock uses it by default (RE project firmware.md 5.1a);
+    // 14 dBm would need CCFG_FORCE_VDDR_HH = 1. Was 0x3E92, which is in no
+    // TI table (bias 18, gain 2, coefficient 31: output unknown).
+    .txPower = 0x38D3,
     .pRegOverride = pOverrides,
     .centerFreq = 0x0393,
     .intFreq = 0x8000,

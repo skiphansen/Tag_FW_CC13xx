@@ -48,6 +48,7 @@
 #include "oepl-definitions.h"
 #include "oepl-proto.h"
 #include "eeprom.h"
+#include "epd_74h.h"
 #include "logging.h"
 
 /* Driverlib APIs */
@@ -173,6 +174,10 @@ int main(void)
 
 #ifdef CHROMA_PROXY
     Proxy();
+#endif
+
+#ifdef EPD_TEST
+    EpdTest();
 #endif
 
 #ifdef RFEASYLINKECHO_ASYNC

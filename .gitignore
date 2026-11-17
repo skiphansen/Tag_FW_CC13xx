@@ -8,3 +8,7 @@ e
 .settings/
 ChromaAeon74/.theia/
 
+dumps/
+oepl_CC1310/build/
+bootloader_CC1310/build/
+CLAUDE.local.md

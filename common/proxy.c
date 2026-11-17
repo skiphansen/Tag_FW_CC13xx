@@ -5,7 +5,7 @@
 #include <ti/devices/DeviceFamily.h>
 #include <ti/drivers/GPIO.h>
 
-#include "board.h"
+#include "oepl_board.h"
 #include "eeprom.h"
 #include "CobsFraming.h"
 #include "proxy_msgs.h"

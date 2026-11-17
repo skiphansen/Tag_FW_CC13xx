@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "board.h"
+#include "oepl_board.h"
 
 #define EEPROM_IMG_VALID				(0x494d4721UL)
 
@@ -12,6 +12,7 @@ struct EepromImageHeader {				//each image space is 0x17000 bytes, we have space
 	uint32_t validMarker;
 	uint32_t size;
 	uint8_t dataType;
+	uint8_t argument;       // AvailDataInfo.dataTypeArgument (in what was padding)
 	uint32_t id;
 	
 	//image data here

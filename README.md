@@ -10,7 +10,7 @@ So far the following tags are known to be based on CC13xx SOCs
 |Chroma 21, SN starting with 'MJ' | CC1310 ||
 |Chroma 21, SN starting with 'LD' | CC1310 ||
 |Chroma 29, SN starting with 'ME' | CC1310 |EP_CHROMA29_CC1310 (38) |
-|Chroma 74H, SN starting with 'MS' | CC1310 ||
+|Chroma 74H, SN starting with 'MS' | CC1310-F64 | own driver, `oepl_CC1310/epd_74h.c` |
 |Chroma Aeon 74, SN starting with 'SR'| CC1311 | EP75R_800x480 (33) |
 |Solum 2.9" EL029D2WRA| CC1310-F128 ||
 
@@ -50,6 +50,31 @@ To Do List:
 - [ ] Audit current consumption
 
 
+### Chroma 74H (alpha)
+
+`oepl_CC1310/` (make config `Chroma74H`) is an OEPL port for the Chroma 74H
+(CC1310F64, 800×480 black/white/yellow). It checks in with a sub-GHz AP,
+draws zlib, G5 and raw images, shows the OEPL boot screens, survives
+watchdog resets and updates over the air through its own bootloader
+(`bootloader_CC1310/`). It reports hwType 0x81 like the Aeon 74 and uses
+the AP's `81.json` (whose red shows as yellow on this panel).
+
+> [!WARNING]
+> **Alpha, for testing only.** It runs on its CR2450 coin cells, but its
+> sleep current hasn't been measured, so battery life is unknown.
+
+Notes:
+
+- The panel draws evenly only at a low supply. On a 3.0–3.3 V bench supply,
+  black pixels shade from black at the top to yellow lower down; white areas
+  stay white. The stock firmware does the same. On its coin cells, which sag
+  during a refresh, black is even or close to it.
+- Builds, image layout, flashing and the hardware notes are in `CLAUDE.md`;
+  progress and open items in `PLAN.md`.
+- Flash it over JTAG (take the vendor dumps first, the stock firmware can't be
+  recovered otherwise): `chroma74h_full_<ver>.bin` from
+  `tools/make_74h_images.py`, then OTA with `chroma74h_ota_<ver>.bin`.
+
 ## Building the firmware
 
 1. Download and install Ti [CCSTUDIO version 20](https://www.ti.com/tool/CCSTUDIO?utm_source=google&utm_medium=cpc&utm_campaign=epd-der-null-58700007779115352_code_composer_rsa-cpc-evm-google-ww_en_int&utm_content=code_composer&ds_k=code+composer&gclsrc=aw.ds&gad_source=1&gad_campaignid=12788839648&gbraid=0AAAAAC068F0RJTf4-Dd0hRx-eqaFCMEmV&gclid=CjwKCAiA8vXIBhAtEiwAf3B-g42xwAPozrqZLLbJRnWgzASeJD60egSehWx-9DEA2JrL0XwsF2CUERoCHesQAvD_BwE#downloads).
@@ -62,6 +87,22 @@ To Do List:
 1. Select "Build Projects" from the Project menu".
 
 Warnings are expected, but there shouldn't be any errors.
+
+### Chroma 74H release images from the command line (macOS, Linux, WSL)
+
+Install ARM-CGT 18.12.8 and SIMPLELINK_CC13X0_SDK 4.20.02.07 into `~/ti`,
+then run `tools/build_release.sh`. It builds the bootloader and the app and
+writes `chroma74h_full_<ver>.bin` (JTAG) and `chroma74h_ota_<ver>.bin` (OTA)
+to `oepl_CC1310/build/release/`. In WSL, with the repo on the Windows
+filesystem (`/mnt/c/...`), it builds in a copy under `~/build` for speed and
+copies the results back.
+
+On Apple Silicon the TI installers refuse to start. With Rosetta installed
+(`softwareupdate --install-rosetta`), run the installer binary directly:
+
+```
+arch -x86_64 <installer>.app/Contents/MacOS/osx-x86_64 --mode unattended --prefix ~/ti
+```
 
 ## Flashing tags
 

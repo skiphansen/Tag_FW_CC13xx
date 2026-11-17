@@ -5,7 +5,7 @@
 
 #include "powermgt.h"
 #include "main.h"
-#include "board.h"
+#include "oepl_board.h"
 #include "syncedproto.h"
 #include "oepl-proto.h"
 #include "oepl-definitions.h"

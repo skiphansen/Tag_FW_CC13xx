@@ -47,5 +47,10 @@
  *        remain unmodified.
  */
 
+/* The stock Chroma 74H CCFG has the DC/DC converter off in both active and */
+/* recharge (MODE_CONF 0xFFBFFF3A): match it. TI's default turns it on.     */
+#define SET_CCFG_MODE_CONF_DCDC_RECHARGE    0x1
+#define SET_CCFG_MODE_CONF_DCDC_ACTIVE      0x1
+
 #include <ti/devices/DeviceFamily.h>
 #include DeviceFamily_constructPath(startup_files/ccfg.c)

@@ -36,7 +36,9 @@
 
 --retain=g_pfnVectors
 
---stack_size=1024   /* C stack is also used for ISR stack */
+/* C stack is also used for ISR stack. 1.5 KB: inflating a zlib image's
+   Huffman trees (uzlib) needs ~0.4 KB on top of the download path */
+--stack_size=1536
 
 --heap_size=256
 
@@ -52,10 +54,27 @@
 
 /* The starting address of the application.  Normally the interrupt vectors  */
 /* must be located at the beginning of the application.                      */
-#define FLASH_BASE              0x0
-#define FLASH_SIZE              0x20000
+/* The Chroma tags use a CC1310F64. For a CC1310F128 tag pass                */
+/* --define=CC1310F128 to the linker. (Not CC1310_128K: that compiler define */
+/* selects a 128K *SPI flash* in common/oepl_board.h.)                            */
+/* --define=OEPL_APP: the Chroma 74H OEPL app, started by bootloader_CC1310.  */
+/* Sector 0 holds the bootloader and sector 15 the CCFG (part of the         */
+/* bootloader image); OTA only ever writes 0x1000-0xEFFF.                    */
 #define RAM_BASE                0x20000000
+#ifdef OEPL_APP
+#define FLASH_BASE              0x1000
+#define FLASH_SIZE              0xE000
+#define RAM_SIZE                0x4000
+#else
+#define FLASH_BASE              0x0
+#ifdef CC1310F128
+#define FLASH_SIZE              0x20000
 #define RAM_SIZE                0x5000
+#else
+#define FLASH_SIZE              0x10000
+#define RAM_SIZE                0x4000
+#endif
+#endif
 
 /* System memory map */
 
@@ -81,13 +100,25 @@ SECTIONS
     .pinit          :   > FLASH
     .init_array     :   > FLASH
     .emb_text       :   > FLASH
+#ifndef OEPL_APP
     .ccfg           :   > FLASH (HIGH)
+#endif
 
     .vtable_ram     :   > SRAM
     .data           :   > SRAM
-    .bss            :   > SRAM
+    /* >> lets .bss split around the fixed .TI.noinit below */
+    .bss            :   >> SRAM
     .sysmem         :   > SRAM
     .nonretenvar    :   > SRAM
+    /* #pragma NOINIT variables, not touched by the C startup (the watchdog
+       reset marker in oepl_74h.c). Behind bootloader_CC1310 they must also
+       stay clear of the RAM its startup zeroes on every boot (OTA_BOOT_RAM_*
+       in ota_74h.h), or no record survives a reset. */
+#ifdef OEPL_APP
+    .TI.noinit      :   > 0x20001800
+#else
+    .TI.noinit      :   > SRAM
+#endif
 
     .stack          :   > SRAM (HIGH)
 }
